@@ -1,30 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function MusicToggle() {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isLoaded, setIsLoaded] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fadeRef = useRef<ReturnType<typeof setInterval>>(null);
-
-    useEffect(() => {
-        // Create audio element with a royalty-free romantic piano piece
-        const audio = new Audio();
-        // We use a data URI for a silent init, actual source loaded on interaction
-        audio.loop = true;
-        audio.volume = 0;
-        audio.preload = "none";
-        audioRef.current = audio;
-        setIsLoaded(true);
-
-        return () => {
-            audio.pause();
-            audio.src = "";
-            if (fadeRef.current) clearInterval(fadeRef.current);
-        };
-    }, []);
 
     const fadeVolume = useCallback((target: number, duration: number = 800) => {
         if (!audioRef.current) return;
@@ -46,6 +28,19 @@ export default function MusicToggle() {
         }, 50);
     }, []);
 
+    useEffect(() => {
+        const audio = new Audio("/Abar.mp3");
+        audio.loop = true;
+        audio.volume = 0;
+        audioRef.current = audio;
+
+        return () => {
+            audio.pause();
+            audio.src = "";
+            if (fadeRef.current) clearInterval(fadeRef.current);
+        };
+    }, [fadeVolume]);
+
     const toggle = useCallback(async () => {
         if (!audioRef.current) return;
 
@@ -53,18 +48,13 @@ export default function MusicToggle() {
             fadeVolume(0);
             setIsPlaying(false);
         } else {
-            // Use a soft piano melody from a public domain source
-            if (!audioRef.current.src || audioRef.current.src === "") {
-                audioRef.current.src =
-                    "https://cdn.pixabay.com/audio/2024/11/29/audio_d72afbcd8b.mp3";
-            }
             audioRef.current.volume = 0;
             try {
                 await audioRef.current.play();
-                fadeVolume(0.3);
+                fadeVolume(0.04); // 5% volume
                 setIsPlaying(true);
             } catch {
-                // Autoplay blocked, that's fine
+                // Autoplay blocked
             }
         }
     }, [isPlaying, fadeVolume]);
@@ -85,15 +75,14 @@ export default function MusicToggle() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1 }}
-            title={isPlaying ? "Pause Music" : "Play Music"}
+            title={isPlaying ? "সুর থামাও" : "সুর চালাও"}
         >
             {isPlaying ? (
-                /* Equalizer bars */
-                <div className="flex items-end gap-[2px] h-5">
+                <div className="flex items-end gap-0.5 h-5">
                     {barDelays.map((delay, i) => (
                         <motion.div
                             key={i}
-                            className="w-[3px] bg-rose-deep rounded-full"
+                            className="w-0.75 bg-rose-deep rounded-full"
                             style={{ height: 4 }}
                             animate={{
                                 height: [4, barHeights[i], 4],
@@ -108,7 +97,6 @@ export default function MusicToggle() {
                     ))}
                 </div>
             ) : (
-                /* Play icon */
                 <svg
                     width="20"
                     height="20"

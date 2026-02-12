@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
+import { splitGraphemes } from "./textUtils";
 
 interface Memory {
     id: number;
@@ -18,44 +19,44 @@ interface Memory {
 const MEMORIES: Memory[] = [
     {
         id: 1, x: 15, y: 25,
-        title: "First Hello",
-        date: "Dec 12, 2023",
-        description: "A simple notification changed my entire world forever.",
+        title: "প্রথম হ্যালো",
+        date: "১২ ডিসেম্বর, ২০২৩",
+        description: "একটা ছোট্ট নোটিফিকেশন থেকেই আমাদের গল্পটা শুরু হয়ে গেল।",
         icon: "👋",
     },
     {
         id: 2, x: 45, y: 12,
-        title: "That Late Night Call",
-        date: "Jan 04, 2024",
-        description: "We talked until the sun came up. I knew I was in trouble — the good kind.",
+        title: "সেই রাতজাগা কল",
+        date: "০৪ জানুয়ারি, ২০২৪",
+        description: "কথা বলতে বলতে ভোর হয়ে গিয়েছিল, আর আমি বুঝে গিয়েছিলাম — এটাই আমার আপনজন।",
         icon: "🌙",
     },
     {
         id: 3, x: 78, y: 32,
-        title: "First I Love You",
-        date: "Feb 14, 2024",
-        description: "It just slipped out mid-sentence. Best slip-up ever.",
+        title: "প্রথম ভালোবাসি বলা",
+        date: "১৪ ফেব্রুয়ারি, ২০২৪",
+        description: "কথার মাঝেই হঠাৎ বলে ফেলেছিলাম — আর সেটাই ছিল সবচেয়ে সুন্দর ভুল।",
         icon: "❤️",
     },
     {
         id: 4, x: 25, y: 62,
-        title: "Airport Goodbye",
-        date: "Mar 20, 2024",
-        description: "The hardest hug to let go of. Knowing it wasn't forever kept me going.",
+        title: "এয়ারপোর্টের বিদায়",
+        date: "২০ মার্চ, ২০২৪",
+        description: "ছাড়তে না চাওয়া সেই আলিঙ্গন—তবুও জানতাম, এটা শেষ না; আবার দেখা হবেই।",
         icon: "✈️",
     },
     {
         id: 5, x: 60, y: 72,
-        title: "Planning Our Future",
-        date: "July 10, 2024",
-        description: "Looking at apartment listings in a city we haven't moved to yet.",
+        title: "আমাদের আগামী",
+        date: "১০ জুলাই, ২০২৪",
+        description: "এখনো যাইনি এমন এক শহরে, একসাথে থাকার ছোট্ট স্বপ্ন গুছিয়ে ফেলছিলাম।",
         icon: "🏡",
     },
     {
         id: 6, x: 85, y: 50,
-        title: "This Moment",
-        date: "Now",
-        description: "Building something beautiful with you. Every. Single. Day.",
+        title: "এই মুহূর্ত",
+        date: "এখন",
+        description: "প্রতিদিন তোমার সাথে একটু একটু করে সবচেয়ে সুন্দর জীবনটা গড়ে উঠছে।",
         icon: "✨",
     },
 ];
@@ -63,7 +64,7 @@ const MEMORIES: Memory[] = [
 // Helper to split text
 const SplitText = ({ text }: { text: string }) => (
     <span className="inline-block" aria-label={text}>
-        {text.split("").map((char, i) => (
+        {splitGraphemes(text).map((char, i) => (
             <span key={i} className="char inline-block" style={{ opacity: 0 }}>
                 {char === " " ? "\u00A0" : char}
             </span>
@@ -177,7 +178,7 @@ function Star({
 }
 
 // Pre-generate background star positions at module level (not during render)
-const BG_STAR_COUNT = 80; // reduced from 120
+const BG_STAR_COUNT = 100;
 const bgStarData = Array.from({ length: BG_STAR_COUNT }, (_, i) => ({
     size: (((i * 7 + 3) % 5) * 0.4 + 0.5).toFixed(1), // deterministic pseudo-random
     left: ((i * 37 + 13) % 100).toFixed(1),
@@ -223,13 +224,13 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
                         textShadow: "0 0 40px rgba(255,209,102,0.15)",
                     }}
                 >
-                    <SplitText text="Our Constellation" />
+                    <SplitText text="আমাদের নক্ষত্রমালা" />
                 </h2>
                 <p
                     className="text-sm sm:text-lg text-white/35 font-light tracking-widest transition-opacity duration-1000"
                     style={{ opacity: isActive ? 1 : 0, transitionDelay: "1.5s" }}
                 >
-                    Every star holds a memory — tap to explore
+                    প্রতিটা তারা এক একটা গল্প — ছুঁয়ে দেখো
                 </p>
             </div>
 
@@ -253,8 +254,10 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
 
             {/* ── Shooting stars ─────────────────────────────── */}
             <ShootingStar delay={2} />
-            <ShootingStar delay={7} />
+            <ShootingStar delay={5} />
+            <ShootingStar delay={9} />
             <ShootingStar delay={13} />
+            <ShootingStar delay={18} />
 
             {/* ── Nebula glow — CSS animation instead of Framer Motion ── */}
             <div
@@ -385,7 +388,7 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Close
+                                    বন্ধ করো
                                 </motion.button>
                             </motion.div>
                         </div>
@@ -399,7 +402,7 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
                 style={{ opacity: isActive ? 1 : 0, transitionDelay: "3s" }}
             >
                 <span className="text-white/20 text-xs tracking-[0.3em] uppercase">
-                    {MEMORIES.length} memories written in our sky
+                    আমাদের আকাশে {MEMORIES.length}টি ঝলমলে স্মৃতি
                 </span>
             </div>
         </>

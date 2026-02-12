@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Our Special Day 💕",
-  description: "A romantic Valentine's Day experience crafted with love",
+  title: "আমাদের বিশেষ দিন 💕",
+  description: "ভালবাসায় সাজানো একটি রোম্যান্টিক বিশেষ দিনের অভিজ্ঞতা",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="bn">
       <body className="antialiased">
         {children}
       </body>

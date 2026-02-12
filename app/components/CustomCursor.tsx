@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 
 interface Trail {
     id: number;
@@ -19,10 +19,6 @@ export default function CustomCursor() {
     const lastTrail = useRef({ x: 0, y: 0 });
     const isTouchDevice = useRef(false);
 
-    // Smooth spring-based follow
-    const springX = useSpring(cursorX, { stiffness: 300, damping: 28, mass: 0.5 });
-    const springY = useSpring(cursorY, { stiffness: 300, damping: 28, mass: 0.5 });
-
     useEffect(() => {
         // Don't show custom cursor on touch devices
         isTouchDevice.current = "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -33,10 +29,10 @@ export default function CustomCursor() {
         let isCurrentlyPointer = false;
 
         const handleMove = (e: MouseEvent) => {
+            // Set position directly — no spring delay
             cursorX.set(e.clientX);
             cursorY.set(e.clientY);
 
-            // Only update state when visibility actually changes (avoid redundant re-renders)
             if (!isCurrentlyVisible) {
                 isCurrentlyVisible = true;
                 setIsVisible(true);
@@ -44,7 +40,7 @@ export default function CustomCursor() {
 
             // Check if hovering over interactive element
             const target = e.target as HTMLElement;
-            const isOverInteractive = !!target.closest("a, button, input, [role='button'], .cursor-pointer");
+            const isOverInteractive = !!target.closest("a, button, input, textarea, [role='button'], .cursor-pointer");
             if (isOverInteractive !== isCurrentlyPointer) {
                 isCurrentlyPointer = isOverInteractive;
                 setIsPointer(isOverInteractive);
@@ -57,13 +53,12 @@ export default function CustomCursor() {
             const dy = e.clientY - lastTrail.current.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if (dist > 20) {
+            if (dist > 18) {
                 lastTrail.current = { x: e.clientX, y: e.clientY };
                 const id = trailId.current++;
                 setTrails((prev) => {
                     const next = [...prev, { id, x: e.clientX, y: e.clientY }];
-                    // Keep max 15 trails (reduced from 25 for perf)
-                    return next.length > 15 ? next.slice(-15) : next;
+                    return next.length > 18 ? next.slice(-18) : next;
                 });
                 setTimeout(() => {
                     setTrails((prev) => prev.filter((t) => t.id !== id));
@@ -124,10 +119,10 @@ export default function CustomCursor() {
                 </motion.div>
             ))}
 
-            {/* Main cursor dot */}
+            {/* Main cursor dot — directly follows mouse, no spring lag */}
             <motion.div
                 className="fixed pointer-events-none z-[9999] -ml-[6px] -mt-[6px]"
-                style={{ left: springX, top: springY, opacity: isVisible ? 1 : 0 }}
+                style={{ left: cursorX, top: cursorY, opacity: isVisible ? 1 : 0 }}
             >
                 <motion.div
                     className="rounded-full"

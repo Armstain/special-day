@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@300;400;500;600;700;800&family=Baloo+Da+2:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme inline {
@@ -11,8 +11,8 @@
   --color-pink-light: #ffe0e8;
   --color-glass-bg: rgba(255, 245, 238, 0.45);
   --color-glass-border: rgba(255, 183, 197, 0.35);
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', Arial, sans-serif;
+  --font-serif: 'Baloo Da 2', 'Anek Bangla', Arial, sans-serif;
+  --font-sans: 'Anek Bangla', Arial, sans-serif;
 }
 
 /* ── base ──────────────────────────────────────────── */
@@ -508,4 +508,34 @@ body {
 
 .nav-arrow-right {
   animation: arrow-bounce-right 1.5s ease-in-out infinite;
+}
+
+/* ── Stamp badge (EmotionalGame) ─────────────────── */
+@keyframes stamp-pop {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.2) rotate(var(--stamp-rotate, -3deg));
+    opacity: 1;
+  }
+
+  80% {
+    transform: scale(0.95) rotate(var(--stamp-rotate, -3deg));
+  }
+
+  100% {
+    transform: scale(1) rotate(var(--stamp-rotate, -3deg));
+  }
+}
+
+.stamp-badge {
+  will-change: transform, opacity;
+  transition: transform 0.2s ease;
+}
+
+.stamp-badge:hover {
+  transform: scale(1.08) rotate(0deg) !important;
 }

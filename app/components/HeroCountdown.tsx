@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import gsap from "gsap";
+import { splitGraphemes, toBengaliNumber } from "./textUtils";
 
 interface TimeLeft {
     days: number;
@@ -27,7 +28,7 @@ function getTimeLeft(): TimeLeft {
 const SplitText = ({ text, className }: { text: string, className?: string }) => {
     return (
         <span className={`inline-block ${className || ""}`} aria-label={text}>
-            {text.split("").map((char, i) => (
+            {splitGraphemes(text).map((char, i) => (
                 <span key={i} className="char inline-block" style={{ opacity: 0, display: "inline-block" }}>
                     {char === " " ? "\u00A0" : char}
                 </span>
@@ -37,7 +38,7 @@ const SplitText = ({ text, className }: { text: string, className?: string }) =>
 };
 
 // Pre-generate confetti data at module level to avoid re-creation
-const CONFETTI_DATA = Array.from({ length: 40 }, (_, i) => ({
+const CONFETTI_DATA = Array.from({ length: 50 }, (_, i) => ({
     id: i,
     x: ((i * 37 + 13) % 100),
     color: ["#D7263D", "#FFB7C5", "#FFD166", "#ff6b8a", "#ff9eb5", "#fff"][i % 6],
@@ -74,13 +75,13 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
     const valueRef = useRef<HTMLSpanElement>(null);
     const prevValue = useRef(value);
 
-    // GSAP animation for digit change
+    // GSAP animation for digit change — scale + opacity only (no y) to prevent layout shift
     useEffect(() => {
         if (value !== prevValue.current && valueRef.current) {
             gsap.fromTo(
                 valueRef.current,
-                { y: -20, opacity: 0, scale: 1.2 },
-                { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" }
+                { opacity: 0, scale: 0.6 },
+                { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2)" }
             );
             prevValue.current = value;
         }
@@ -89,15 +90,17 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
     return (
         <div className="flex flex-col items-center gap-2 sm:gap-3">
             <div
-                className="glass-card rounded-2xl sm:rounded-3xl px-4 py-3 sm:px-8 sm:py-6 md:px-10 md:py-8 min-w-[70px] sm:min-w-[110px] md:min-w-[130px] transition-transform duration-200 hover:scale-[1.08]"
-                style={{ willChange: "auto" }}
+                className="glass-card rounded-2xl sm:rounded-3xl px-4 py-3 sm:px-8 sm:py-6 md:px-10 md:py-8 min-w-17.5 sm:min-w-27.5 md:min-w-32.5 transition-transform duration-200 hover:scale-[1.08]"
             >
                 <span
                     ref={valueRef}
                     className="block text-4xl sm:text-6xl md:text-8xl font-bold text-rose-deep text-center"
-                    style={{ fontFamily: "var(--font-serif)" }}
+                    style={{
+                        fontFamily: "var(--font-serif)",
+                        fontVariantNumeric: "tabular-nums",
+                    }}
                 >
-                    {String(value).padStart(2, "0")}
+                    {toBengaliNumber(String(value).padStart(2, "0"))}
                 </span>
             </div>
             <span className="text-xs sm:text-sm md:text-base font-semibold tracking-[0.2em] uppercase text-rose-deep/60">
@@ -108,14 +111,14 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
 }
 
 // Pre-generate decorative particle positions (deterministic, no Math.random in render)
-const DECO_PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-    width: 4 + ((i * 3 + 2) % 8),
-    left: `${((i * 41 + 7) % 100)}%`,
-    top: `${((i * 53 + 11) % 100)}%`,
+const DECO_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
+    width: 4 + ((i * 3 + 2) % 10),
+    left: `${((i * 37 + 7) % 100)}%`,
+    top: `${((i * 47 + 11) % 100)}%`,
     colorIdx: i % 3,
-    opacity: 0.15 + ((i * 7) % 5) * 0.04,
-    duration: `${3 + ((i * 11) % 4)}s`,
-    delay: `${((i * 0.7) % 3).toFixed(1)}s`,
+    opacity: 0.12 + ((i * 7) % 5) * 0.04,
+    duration: `${3 + ((i * 11) % 5)}s`,
+    delay: `${((i * 0.6) % 3).toFixed(1)}s`,
 }));
 
 export default function HeroCountdown({ isActive = true }: { isActive?: boolean }) {
@@ -183,7 +186,7 @@ export default function HeroCountdown({ isActive = true }: { isActive?: boolean 
         <>
             {showConfetti && <ConfettiBurst />}
 
-            {/* Background decorative particles — CSS animation, no Framer Motion */}
+            {/* Background decorative particles — CSS animation */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {DECO_PARTICLES.map((p, i) => (
                     <div
@@ -222,9 +225,9 @@ export default function HeroCountdown({ isActive = true }: { isActive?: boolean 
                                 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold italic text-charcoal flex flex-wrap justify-center gap-x-4"
                                 style={{ fontFamily: "var(--font-serif)" }}
                             >
-                                <SplitText text="Every" />
-                                <SplitText text="Second" />
-                                <SplitText text="Closer" />
+                                <SplitText text="প্রতিটি" />
+                                <SplitText text="মুহূর্ত" />
+                                <SplitText text="কাছে" />
                             </h1>
                         </div>
 
@@ -234,23 +237,23 @@ export default function HeroCountdown({ isActive = true }: { isActive?: boolean 
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1, duration: 0.8 }}
                         >
-                            to the day that celebrates what we already know
+                            অপেক্ষার প্রহর গুনছি সেই বিশেষ দিনের জন্য
                         </motion.p>
 
                         <div className="flex items-center gap-3 sm:gap-5 md:gap-8">
-                            <CountdownDigit value={timeLeft.days} label="Days" />
+                            <CountdownDigit value={timeLeft.days} label="দিন" />
                             <span className="text-3xl sm:text-5xl text-rose-deep/30 font-light -mt-8">:</span>
-                            <CountdownDigit value={timeLeft.hours} label="Hours" />
+                            <CountdownDigit value={timeLeft.hours} label="ঘণ্টা" />
                             <span className="text-3xl sm:text-5xl text-rose-deep/30 font-light -mt-8">:</span>
-                            <CountdownDigit value={timeLeft.minutes} label="Min" />
+                            <CountdownDigit value={timeLeft.minutes} label="মিনিট" />
                             <span className="text-3xl sm:text-5xl text-rose-deep/30 font-light -mt-8">:</span>
-                            <CountdownDigit value={timeLeft.seconds} label="Sec" />
+                            <CountdownDigit value={timeLeft.seconds} label="সেকেন্ড" />
                         </div>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center">
                         <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold italic text-rose-deep mb-8 block">
-                            <SplitText text="Happy Valentine's Day" />
+                            <SplitText text="শুভ ভালোবাসা দিবস" />
                         </h1>
                     </div>
                 )}

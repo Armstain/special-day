@@ -20,12 +20,18 @@ interface Particle {
     color: string;
     active: boolean;
     gravity: number;
+    bounced: boolean;    // whether it has hit the floor
+    bounceCount: number; // how many times it bounced
 }
 
 // ── Config ──────────────────────────────────────────────
-const POOL_SIZE = 80;
-const SPAWN_DISTANCE = 18; // min cursor travel before spawning
-const SPAWN_COUNT = 2; // particles per spawn
+const POOL_SIZE = 100;
+const SPAWN_DISTANCE = 16; // min cursor travel before spawning
+const SPAWN_COUNT = 3; // particles per spawn
+const FLOOR_MARGIN = 30; // px from bottom of viewport
+const BOUNCE_DAMPING = 0.45; // energy retained after bounce (higher = bouncier)
+const FLOOR_FRICTION = 0.92; // horizontal friction on floor contact
+const MAX_BOUNCES = 3; // max bounces before starting to fade
 const COLORS = [
     "#D7263D",  // rose-deep
     "#FFB7C5",  // pink-soft
@@ -95,6 +101,7 @@ export default function CursorDropShapes() {
     const rafRef = useRef<number>(0);
     const dprRef = useRef(1);
     const mouseActiveRef = useRef(false);
+    const viewportHeightRef = useRef(0);
 
     // ── Initialize pool ──────────────────────────────────
     const initPool = useCallback(() => {
@@ -107,6 +114,7 @@ export default function CursorDropShapes() {
                 life: 0, maxLife: 0,
                 shape: "heart", color: "#fff",
                 active: false, gravity: 0,
+                bounced: false, bounceCount: 0,
             });
         }
         poolRef.current = pool;
@@ -128,19 +136,21 @@ export default function CursorDropShapes() {
             if (!p) return;
 
             p.active = true;
-            p.x = x + (Math.random() - 0.5) * 10;
-            p.y = y + (Math.random() - 0.5) * 6;
-            p.vx = (Math.random() - 0.5) * 1.8;
-            p.vy = Math.random() * -0.8 + 0.3; // slight upward then gravity pulls down
+            p.x = x + (Math.random() - 0.5) * 14;
+            p.y = y - 8 + (Math.random() - 0.5) * 6; // spawn slightly above cursor
+            p.vx = (Math.random() - 0.5) * 2.5;
+            p.vy = Math.random() * -1.5 + 0.5; // slight upward arc then gravity pulls down
             p.rotation = Math.random() * Math.PI * 2;
-            p.rotationSpeed = (Math.random() - 0.5) * 0.12;
-            p.size = 6 + Math.random() * 10;
-            p.opacity = 0.7 + Math.random() * 0.3;
+            p.rotationSpeed = (Math.random() - 0.5) * 0.15;
+            p.size = 8 + Math.random() * 12; // bigger: 8-20px
+            p.opacity = 0.85 + Math.random() * 0.15; // start nearly fully opaque
             p.life = 0;
-            p.maxLife = 50 + Math.random() * 40; // frames (~0.8-1.5s at 60fps)
+            p.maxLife = 120 + Math.random() * 60; // longer life for bouncing (~2-3s at 60fps)
             p.shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
             p.color = COLORS[Math.floor(Math.random() * COLORS.length)];
-            p.gravity = 0.06 + Math.random() * 0.04;
+            p.gravity = 0.08 + Math.random() * 0.05;
+            p.bounced = false;
+            p.bounceCount = 0;
         }
     }, [getParticle]);
 
@@ -152,6 +162,7 @@ export default function CursorDropShapes() {
         if (!ctx) return;
 
         const dpr = dprRef.current;
+        const floorY = viewportHeightRef.current - FLOOR_MARGIN;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const pool = poolRef.current;
@@ -169,12 +180,36 @@ export default function CursorDropShapes() {
             p.rotation += p.rotationSpeed;
             p.life++;
 
-            // Fade as life progresses
-            const lifeRatio = p.life / p.maxLife;
-            p.opacity = Math.max(0, (1 - lifeRatio) * 0.85);
+            // ── Floor collision & bounce ──
+            if (p.y >= floorY) {
+                p.y = floorY; // clamp to floor
+                p.vy = -Math.abs(p.vy) * BOUNCE_DAMPING; // bounce up with energy loss
+                p.vx *= FLOOR_FRICTION; // friction slows horizontal
+                p.rotationSpeed *= 0.7; // slow rotation on bounce
+                p.bounced = true;
+                p.bounceCount++;
 
-            // Kill when expired or off screen
-            if (p.life >= p.maxLife || p.y > canvas.height / dpr + 20) {
+                // If bounce is too weak, stop vertical movement
+                if (Math.abs(p.vy) < 0.5) {
+                    p.vy = 0;
+                    p.gravity = 0; // rest on floor
+                }
+            }
+
+            // ── Opacity: stay opaque during fall, fade after bouncing ──
+            if (!p.bounced) {
+                // Fully opaque during fall
+                p.opacity = 0.85 + Math.random() * 0.05;
+            } else if (p.bounceCount >= MAX_BOUNCES || Math.abs(p.vy) < 0.5) {
+                // Fade out after settling
+                p.opacity *= 0.94;
+            } else {
+                // Slight fade during bounces
+                p.opacity = Math.max(0.3, p.opacity - 0.01);
+            }
+
+            // Kill when too transparent or life expired or off-screen horizontally
+            if (p.opacity < 0.03 || p.life >= p.maxLife || p.x < -50 || p.x > canvas.width / dpr + 50) {
                 p.active = false;
                 continue;
             }
@@ -223,8 +258,9 @@ export default function CursorDropShapes() {
 
         // Resize handler
         const resize = () => {
-            const dpr = Math.min(window.devicePixelRatio || 1, 1.5); // cap at 1.5x for perf on low-end
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
             dprRef.current = dpr;
+            viewportHeightRef.current = window.innerHeight;
             canvas.width = window.innerWidth * dpr;
             canvas.height = window.innerHeight * dpr;
             canvas.style.width = `${window.innerWidth}px`;

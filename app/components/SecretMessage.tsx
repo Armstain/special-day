@@ -3,18 +3,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import gsap from "gsap";
+import { splitGraphemes } from "./textUtils";
 
 const MESSAGE_LINES = [
-    "You are my calm in chaos,",
-    "my favorite notification,",
-    "my safest place,",
-    "and my best decision.",
+    "সব ব্যস্ততার ভিড়ে তোমার কাছেই শান্তি পাই,",
+    "তোমার একটা মেসেজেই দিনটা ভালো হয়ে যায়,",
+    "তুমিই আমার সবচেয়ে নিরাপদ জায়গা,",
+    "আর তোমাকেই ভালোবেসে ফেলাটা ছিল আমার সেরা সিদ্ধান্ত।",
+    "",
+    "Will you be my Valentine?",
 ];
 
 // Helper to split text
 const SplitText = ({ text }: { text: string }) => (
     <span className="inline-block" aria-label={text}>
-        {text.split("").map((char, i) => (
+        {splitGraphemes(text).map((char, i) => (
             <span key={i} className="char inline-block" style={{ opacity: 0 }}>
                 {char === " " ? "\u00A0" : char}
             </span>
@@ -153,7 +156,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                     className="text-3xl sm:text-5xl md:text-6xl font-bold italic text-charcoal mb-5 sm:mb-8"
                     style={{ fontFamily: "var(--font-serif)" }}
                 >
-                    <SplitText text="A Letter Awaits" />
+                    <SplitText text="তোমার জন্য চিঠি" />
                 </h2>
 
                 <motion.p
@@ -162,12 +165,12 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                     animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                     transition={{ delay: 0.6, duration: 0.6 }}
                 >
-                    Some words are better read slowly
+                    কিছু কথা ধীরে পড়লেই সবচেয়ে বেশি ছুঁয়ে যায়
                 </motion.p>
 
                 <motion.button
                     onClick={handleOpen}
-                    className="group glow-pulse rounded-full bg-gradient-to-br from-rose-deep to-pink-soft
+                    className="group glow-pulse rounded-full bg-linear-to-br from-rose-deep to-pink-soft
                      px-10 py-5 sm:px-14 sm:py-6 text-white font-semibold text-lg sm:text-xl
                      shadow-xl hover:shadow-2xl transition-shadow cursor-pointer relative overflow-hidden"
                     whileHover={{ scale: 1.05, boxShadow: "0 20px 60px rgba(215, 38, 61, 0.35)" }}
@@ -175,7 +178,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                     style={{ rotateX, rotateY, perspective: 600 }}
                 >
                     <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
                         initial={{ x: "-100%" }}
                         whileHover={{ x: "100%" }}
                         transition={{ duration: 0.6 }}
@@ -184,7 +187,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
-                        Open Your Letter
+                        চিঠিটা খুলে দেখো
                     </span>
                 </motion.button>
             </div>
@@ -222,12 +225,12 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                                         className="text-2xl sm:text-3xl md:text-4xl font-bold italic text-charcoal mt-4"
                                         style={{ fontFamily: "var(--font-serif)" }}
                                     >
-                                        A Letter for You
+                                        শুধু তোমার জন্য
                                     </h3>
                                 </div>
 
                                 <div
-                                    className="text-center text-xl sm:text-2xl md:text-3xl leading-relaxed sm:leading-loose text-charcoal/85 italic whitespace-pre-line min-h-[200px]"
+                                    className="text-center text-xl sm:text-2xl md:text-3xl leading-relaxed sm:leading-loose text-charcoal/85 italic whitespace-pre-line min-h-50"
                                     style={{ fontFamily: "var(--font-serif)" }}
                                 >
                                     {displayedText}
@@ -237,7 +240,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                                 </div>
                                 <motion.div className="text-center mt-8 sm:mt-10 text-rose-deep/40">
                                     <span className="text-base sm:text-lg italic" style={{ fontFamily: "var(--font-serif)" }}>
-                                        — with all my love, always 💕
+                                        — ভালোবাসা রইলো, সবসময় 💕
                                     </span>
                                 </motion.div>
                                 <motion.button

@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
+import { splitGraphemes, toBengaliNumber } from "./textUtils";
 
 // Helper to split text
 const SplitText = ({ text }: { text: string }) => (
     <span className="inline-block" aria-label={text}>
-        {text.split("").map((char, i) => (
+        {splitGraphemes(text).map((char, i) => (
             <span key={i} className="char inline-block" style={{ opacity: 0 }}>
                 {char === " " ? "\u00A0" : char}
             </span>
@@ -122,7 +123,7 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                             className="text-3xl sm:text-5xl md:text-6xl font-bold italic text-charcoal mb-4 sm:mb-6"
                             style={{ fontFamily: "var(--font-serif)" }}
                         >
-                            <SplitText text="Distance Bridge" />
+                            <SplitText text="দূরত্বের সেতু" />
                         </h2>
                         <motion.p
                             className="text-lg sm:text-xl text-charcoal/50 font-light mb-10 sm:mb-14 max-w-lg"
@@ -130,13 +131,13 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                             animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                             transition={{ delay: 0.6 }}
                         >
-                            How far apart are we? Let&apos;s find out how much love crosses the gap.
+                            আমরা কত দূরে আছি? দেখো তো, ভালোবাসা কত সহজে সব দূরত্ব পেরিয়ে যায়।
                         </motion.p>
 
                         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center justify-center w-full mb-8 sm:mb-10">
                             <motion.input
                                 type="text"
-                                placeholder="My City"
+                                placeholder="আমার শহর"
                                 className="w-full sm:w-56 px-6 py-4 rounded-2xl border-2 border-pink-soft/50 focus:border-rose-deep focus:ring-4 focus:ring-rose-deep/10 outline-none bg-white/60 backdrop-blur-sm transition-all text-center text-lg"
                                 value={place1}
                                 onChange={(e) => setPlace1(e.target.value)}
@@ -151,7 +152,7 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                             </motion.span>
                             <motion.input
                                 type="text"
-                                placeholder="Your City"
+                                placeholder="তোমার শহর"
                                 className="w-full sm:w-56 px-6 py-4 rounded-2xl border-2 border-pink-soft/50 focus:border-rose-deep focus:ring-4 focus:ring-rose-deep/10 outline-none bg-white/60 backdrop-blur-sm transition-all text-center text-lg"
                                 value={place2}
                                 onChange={(e) => setPlace2(e.target.value)}
@@ -162,18 +163,17 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                         <motion.button
                             onClick={calculateDistance}
                             disabled={!place1 || !place2}
-                            className="glow-pulse bg-gradient-to-r from-rose-deep to-pink-soft text-white px-12 py-4 sm:px-14 sm:py-5 rounded-full font-semibold text-lg sm:text-xl shadow-xl hover:shadow-2xl disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer relative overflow-hidden"
+                            className="glow-pulse bg-linear-to-r from-rose-deep to-pink-soft text-white px-12 py-4 sm:px-14 sm:py-5 rounded-full font-semibold text-lg sm:text-xl shadow-xl hover:shadow-2xl disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer relative overflow-hidden"
                             whileHover={{ scale: 1.05, boxShadow: "0 20px 60px rgba(215, 38, 61, 0.3)" }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            {/* Shine overlay */}
                             <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
                                 initial={{ x: "-100%" }}
                                 whileHover={{ x: "100%" }}
                                 transition={{ duration: 0.6 }}
                             />
-                            <span className="relative">Connect Us 💕</span>
+                            <span className="relative">আমাদের যুক্ত করো 💕</span>
                         </motion.button>
                     </motion.div>
                 ) : (
@@ -248,7 +248,7 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", delay: 0.3 }}
                         >
-                            {displayedDistance.toLocaleString()} km
+                            {toBengaliNumber(displayedDistance.toLocaleString())} কি.মি.
                         </motion.div>
 
                         <motion.p
@@ -258,7 +258,7 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6 }}
                         >
-                            &ldquo;Every kilometer is just one more reason to hold you tighter when we meet.&rdquo;
+                            &ldquo;প্রতিটা কিলোমিটার শুধু একটা কথা মনে করায়—দেখা হলে তোমাকে আরও জোরে জড়িয়ে ধরবো।&rdquo;
                         </motion.p>
 
                         <motion.button
@@ -267,7 +267,7 @@ export default function DistanceBridge({ isActive = false }: { isActive?: boolea
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            Try another location
+                            আরেকটি শহর দিয়ে দেখো
                         </motion.button>
                     </motion.div>
                 )}

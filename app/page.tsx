@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import Lenis from "lenis";
+import { toBengaliNumber } from "./components/textUtils";
 
 // Dynamic SSR-free imports
 const FloatingHearts = dynamic(() => import("./components/FloatingHearts"), { ssr: false });
@@ -13,22 +14,26 @@ const CursorDropShapes = dynamic(() => import("./components/CursorDropShapes"), 
 const HeroCountdown = dynamic(() => import("./components/HeroCountdown"), { ssr: false });
 const SecretMessage = dynamic(() => import("./components/SecretMessage"), { ssr: false });
 const MemoryMap = dynamic(() => import("./components/MemoryMap"), { ssr: false });
-const DistanceBridge = dynamic(() => import("./components/DistanceBridge"), { ssr: false });
+const EmotionalGame = dynamic(() => import("./components/EmotionalGame"), { ssr: false });
 const MusicToggle = dynamic(() => import("./components/MusicToggle"), { ssr: false });
 const ShareCardGenerator = dynamic(() => import("./components/ShareCardGenerator"), { ssr: false });
+const WelcomeGate = dynamic(() => import("./components/WelcomeGate"), { ssr: false });
 
 const SECTIONS = [
-  { id: "hero", label: "♡", name: "Countdown" },
-  { id: "letter", label: "✉", name: "Love Letter" },
-  { id: "stars", label: "★", name: "Memories" },
-  { id: "bridge", label: "✈", name: "Distance" },
-  { id: "card", label: "❤", name: "Card" },
-  { id: "footer", label: "💕", name: "Forever" },
+  { id: "hero", label: "♡", name: "অপেক্ষা" },
+  { id: "letter", label: "✉", name: "চিঠি" },
+  { id: "stars", label: "★", name: "স্মৃতি" },
+  { id: "bridge", label: "🧩", name: "খেলা" },
+  { id: "card", label: "❤", name: "কার্ড" },
+  { id: "footer", label: "💕", name: "চিরদিন" },
 ];
 
 export default function Home() {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [collectedStamps, setCollectedStamps] = useState<string[]>([]);
+
   const trackRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const currentRef = useRef(0); // mutable ref for Lenis callback
@@ -225,8 +230,12 @@ export default function Home() {
       <FloatingHearts />
       <MusicToggle />
 
-      {/* ── Progress Bar (top) ──────────────────────────── */}
-      <div className="fixed top-0 left-0 right-0 h-[3px] z-[101] bg-charcoal/5">
+      {/* ── Welcome Gate Overlay ── */}
+      {showWelcome && (
+        <WelcomeGate onComplete={() => setShowWelcome(false)} />
+      )}
+
+      <div className={`fixed top-0 left-0 right-0 h-0.75 z-101 bg-charcoal/5 transition-opacity duration-700 ${showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div
           className="h-full rounded-r-full transition-all duration-700 ease-in-out"
           style={{
@@ -236,11 +245,10 @@ export default function Home() {
         />
       </div>
 
-      {/* ── Section Counter ─────────────────────────────── */}
       <motion.div
-        className="fixed top-5 left-5 sm:top-7 sm:left-8 z-[101] flex items-center gap-3"
+        className={`fixed top-5 left-5 sm:top-7 sm:left-8 z-101 flex items-center gap-3 ${showWelcome ? 'opacity-0 pointer-events-none' : ''}`}
         initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        animate={{ opacity: showWelcome ? 0 : 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
         <span
@@ -248,15 +256,14 @@ export default function Home() {
             ${isStarSection ? "text-white/40" : "text-charcoal/30"}`}
         >
           <span className={`text-lg font-bold ${isStarSection ? "text-gold" : "text-rose-deep"}`}>
-            {String(current + 1).padStart(2, "0")}
+            {toBengaliNumber(String(current + 1).padStart(2, "0"))}
           </span>
           {" / "}
-          {String(total).padStart(2, "0")}
+          {toBengaliNumber(String(total).padStart(2, "0"))}
         </span>
       </motion.div>
 
-      {/* ── Navigation Dots (right) ────────────────────── */}
-      <nav className="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[101] flex flex-col items-center gap-5">
+      <nav className={`fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-101 flex flex-col items-center gap-5 transition-opacity duration-700 ${showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         {SECTIONS.map((sec, i) => (
           <motion.button
             key={sec.id}
@@ -319,9 +326,7 @@ export default function Home() {
         ))}
       </nav>
 
-      {/* ── Prev / Next Buttons ─────────────────────────── */}
-      <div className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-[101] flex items-center gap-4 sm:gap-6">
-        {/* Prev */}
+      <div className={`fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-101 flex items-center gap-4 sm:gap-6 transition-opacity duration-700 ${showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <motion.button
           onClick={goPrev}
           disabled={current === 0 || isAnimating}
@@ -351,10 +356,9 @@ export default function Home() {
           >
             <path d="M19 12H5M12 5l-7 7 7 7" />
           </svg>
-          <span className="hidden sm:inline">Prev</span>
+          <span className="hidden sm:inline">পেছনে</span>
         </motion.button>
 
-        {/* Section name badge */}
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
@@ -372,7 +376,6 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Next */}
         <motion.button
           onClick={goNext}
           disabled={current === total - 1 || isAnimating}
@@ -381,7 +384,7 @@ export default function Home() {
             disabled:opacity-0 disabled:pointer-events-none
             ${isStarSection
               ? "bg-white/10 text-white/80 hover:bg-white/20 backdrop-blur-md border border-white/10"
-              : "bg-gradient-to-r from-rose-deep to-pink-soft text-white shadow-lg hover:shadow-xl hover:shadow-rose-deep/20"
+              : "bg-linear-to-r from-rose-deep to-pink-soft text-white shadow-lg hover:shadow-xl hover:shadow-rose-deep/20"
             }`}
           whileHover={{ scale: 1.05, x: 3 }}
           whileTap={{ scale: 0.95 }}
@@ -389,7 +392,7 @@ export default function Home() {
           animate={{ opacity: current === total - 1 ? 0 : 1, y: current === total - 1 ? 10 : 0 }}
           transition={{ duration: 0.3 }}
         >
-          <span className="hidden sm:inline">Next</span>
+          <span className="hidden sm:inline">পরেরটি</span>
           <svg
             width="18"
             height="18"
@@ -429,17 +432,23 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Section 4: Distance Bridge */}
+        {/* Section 4: Emotional Game (Puzzle) */}
         <section className="panel panel-bridge">
           <div className="section-content w-full h-full flex items-center justify-center">
-            <DistanceBridge isActive={current === 3} />
+            <EmotionalGame
+              isActive={current === 3}
+              onNext={(allAnswers) => {
+                setCollectedStamps(allAnswers);
+                goNext();
+              }}
+            />
           </div>
         </section>
 
-        {/* Section 5: Valentine Card */}
+        {/* Section 5: Card Generator */}
         <section className="panel panel-card">
           <div className="section-content w-full h-full flex items-center justify-center">
-            <ShareCardGenerator isActive={current === 4} />
+            <ShareCardGenerator isActive={current === 4} answers={collectedStamps} />
           </div>
         </section>
 
@@ -457,7 +466,7 @@ export default function Home() {
               className="text-charcoal/40 text-xl sm:text-2xl italic max-w-md"
               style={{ fontFamily: "var(--font-serif)" }}
             >
-              Made with all the love in my heart
+              তোমার জন্য, মনভরা ভালোবাসা দিয়ে
             </p>
             <motion.p
               className="text-charcoal/25 text-sm mt-6 tracking-widest"
@@ -465,7 +474,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
             >
-              Happy Valentine&apos;s Day 2026
+              শুভ ভালোবাসা দিবস ২০২৬
             </motion.p>
           </div>
         </section>

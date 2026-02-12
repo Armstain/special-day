@@ -35,7 +35,7 @@ const HeartSVG = ({ size, color = "#D7263D", opacity = 0.5 }: { size: number; co
 
 export default function FloatingHearts() {
     const [bgHearts] = useState<Heart[]>(() =>
-        Array.from({ length: 10 }, (_, i) => ({
+        Array.from({ length: 14 }, (_, i) => ({
             id: i,
             x: Math.random() * 100,
             y: Math.random() * 100,
