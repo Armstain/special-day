@@ -215,12 +215,12 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
     // ═══════════════════════════════════════════════════════
 
     useEffect(() => {
-        const clockAudio = new Audio("/cinematic-clock-ticking.mp3");
+        const clockAudio = new Audio("/special-day/cinematic-clock-ticking.mp3");
         clockAudio.loop = true;
         clockAudio.volume = 0;
         clockAudioRef.current = clockAudio;
 
-        const ambienceAudio = new Audio("/ambience_music.mp3");
+        const ambienceAudio = new Audio("/special-day/ambience_music.mp3");
         ambienceAudio.loop = true;
         ambienceAudio.volume = 0;
         ambienceAudioRef.current = ambienceAudio;

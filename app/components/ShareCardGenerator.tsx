@@ -72,7 +72,7 @@ function renderCardToCanvas(message: string, stamps: string[] = []): HTMLCanvasE
 
     const textToDisplay = message.trim()
         ? message.trim()
-        : '"দূরত্ব কোনো বিষয় না,\nযখন কেউ এতটা মানে রাখে।"';
+        : '"পপি, দূরত্ব কোনো বিষয় না,\nযখন তুমি এতটা মানে রাখো।"';
 
     const lines = wrapText(ctx, textToDisplay, W - 120, 26);
     const startY = 380 - (lines.length * 36) / 2;
@@ -354,7 +354,7 @@ export default function ShareCardGenerator({ isActive = false, answers = [] }: {
                             className="text-4xl sm:text-5xl md:text-7xl font-bold italic text-charcoal mb-4 sm:mb-6"
                             style={{ fontFamily: "var(--font-serif)" }}
                         >
-                            <SplitText text="তুমি কি" />
+                            <SplitText text="পপি, তুমি কি" />
                             <br />
                             <SplitText text="সারাজীবন আমার থাকবে?" />
                         </h2>

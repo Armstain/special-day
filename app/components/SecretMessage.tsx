@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { splitGraphemes } from "./textUtils";
 
 const MESSAGE_LINES = [
+    "শাহানাজ পপি,",
     "ভালোবাসাবাসির জন্য অনন্তকালের প্রয়োজন নেই,",
     "একটি মুহূর্তই যথেষ্ট।",
     "সেই মুহূর্তটা আমি তোমাকেই দিতে চাই।",
@@ -155,7 +156,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                     className="text-3xl sm:text-5xl md:text-6xl font-bold italic text-charcoal mb-5 sm:mb-8"
                     style={{ fontFamily: "var(--font-serif)" }}
                 >
-                    <SplitText text="তোমার জন্য চিঠি" />
+                    <SplitText text="পপির জন্য চিঠি" />
                 </h2>
 
                 <motion.p
@@ -238,7 +239,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                                 </div>
                                 <motion.div className="text-center mt-8 sm:mt-10 text-rose-deep/40">
                                     <span className="text-base sm:text-lg italic" style={{ fontFamily: "var(--font-serif)" }}>
-                                        — ভালোবাসা রইলো, সবসময় 💕
+                                        — পপির জন্য ভালোবাসা, সবসময় 💕
                                     </span>
                                 </motion.div>
                                 <motion.button

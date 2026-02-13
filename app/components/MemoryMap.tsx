@@ -79,7 +79,7 @@ const MEMORIES: Memory[] = [
         id: 9, x: 62, y: 82, mobileX: 50, mobileY: 81,
         title: "তুমি আমার নক্ষত্র",
         date: "১৩ ফেব্রুয়ারি",
-        description: "এই আকাশ বানাচ্ছি। কারণ তুমি আমার নক্ষত্র।",
+        description: "এই আকাশ বানাচ্ছি। কারণ পপি তুমি আমার নক্ষত্র।",
         icon: "✨",
     },
 ];
@@ -96,11 +96,7 @@ const SplitText = ({ text }: { text: string }) => (
 );
 
 /* ── Shooting star ── */
-function ShootingStar({ delay }: { delay: number }) {
-    const startX = useMemo(() => Math.random() * 60, []);
-    const startY = useMemo(() => Math.random() * 30, []);
-    const repeatDelay = useMemo(() => 8 + Math.random() * 12, []);
-
+function ShootingStar({ delay, startX, startY, repeatDelay }: { delay: number; startX: number; startY: number; repeatDelay: number }) {
     return (
         <div
             className="absolute w-[2px] h-[2px] bg-white rounded-full shooting-star"
@@ -293,11 +289,11 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
             </div>
 
             {/* ── Shooting stars ─────────────────────────────── */}
-            <ShootingStar delay={2} />
-            <ShootingStar delay={5} />
-            <ShootingStar delay={9} />
-            <ShootingStar delay={13} />
-            <ShootingStar delay={18} />
+            <ShootingStar delay={2} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
+            <ShootingStar delay={5} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
+            <ShootingStar delay={9} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
+            <ShootingStar delay={13} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
+            <ShootingStar delay={18} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
 
             {/* ── Nebula glow — CSS animation instead of Framer Motion ── */}
             <div

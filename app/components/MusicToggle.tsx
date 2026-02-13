@@ -50,7 +50,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     );
 
     useEffect(() => {
-        const audio = new Audio("/Abar.mp3");
+        const audio = new Audio("/special-day/Abar.mp3");
         audio.loop = true;
         audio.volume = 0;
         audio.preload = "auto";
@@ -147,7 +147,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1 }}
-            title={isPlaying ? "সুর থামাও" : "সুর চালাও"}
+            title={isPlaying ? "পপির সুর থামাও" : "পপির সুর চালাও"}
         >
             {isPlaying ? (
                 <div className="flex items-end gap-0.5 h-5">
