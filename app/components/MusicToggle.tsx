@@ -8,6 +8,10 @@ interface MusicToggleProps {
 }
 
 export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
+    const audioBasePath =
+        typeof window !== "undefined" && window.location.pathname.startsWith("/special-day")
+            ? "/special-day"
+            : "";
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fadeRafRef = useRef<number | null>(null);
@@ -50,7 +54,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     );
 
     useEffect(() => {
-        const audio = new Audio("Abar.mp3");
+        const audio = new Audio(`${audioBasePath}/Abar.mp3`);
         audio.loop = true;
         audio.volume = 0;
         audio.preload = "auto";
@@ -69,7 +73,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
             audio.pause();
             audio.src = "";
         };
-    }, [cancelFade]);
+    }, [cancelFade, audioBasePath]);
 
     const playWithFadeIn = useCallback(async () => {
         const audio = audioRef.current;
@@ -79,7 +83,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
         audio.volume = 0;
         try {
             await audio.play();
-            fadeTo(0.05);
+            fadeTo(0.22);
             shouldAutoplayWhenUnlockedRef.current = false;
             return true;
         } catch {
