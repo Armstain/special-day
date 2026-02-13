@@ -239,7 +239,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                                 </div>
                                 <motion.div className="text-center mt-8 sm:mt-10 text-rose-deep/40">
                                     <span className="text-base sm:text-lg italic" style={{ fontFamily: "var(--font-serif)" }}>
-                                        — পপির জন্য ভালোবাসা, সবসময় 💕
+                                        — ভালোবাসা, সবসময় 💕
                                     </span>
                                 </motion.div>
                                 <motion.button

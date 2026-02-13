@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { splitGraphemes } from "./textUtils";
@@ -96,7 +96,16 @@ const SplitText = ({ text }: { text: string }) => (
 );
 
 /* ── Shooting star ── */
-function ShootingStar({ delay, startX, startY, repeatDelay }: { delay: number; startX: number; startY: number; repeatDelay: number }) {
+function seededUnit(seed: number) {
+    const value = Math.sin(seed * 12.9898) * 43758.5453;
+    return value - Math.floor(value);
+}
+
+function ShootingStar({ delay }: { delay: number }) {
+    const startX = seededUnit(delay + 1) * 60;
+    const startY = seededUnit(delay + 2) * 30;
+    const repeatDelay = 8 + seededUnit(delay + 3) * 12;
+
     return (
         <div
             className="absolute w-[2px] h-[2px] bg-white rounded-full shooting-star"
@@ -289,11 +298,11 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
             </div>
 
             {/* ── Shooting stars ─────────────────────────────── */}
-            <ShootingStar delay={2} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
-            <ShootingStar delay={5} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
-            <ShootingStar delay={9} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
-            <ShootingStar delay={13} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
-            <ShootingStar delay={18} startX={Math.random() * 60} startY={Math.random() * 30} repeatDelay={8 + Math.random() * 12} />
+            <ShootingStar delay={2} />
+            <ShootingStar delay={5} />
+            <ShootingStar delay={9} />
+            <ShootingStar delay={13} />
+            <ShootingStar delay={18} />
 
             {/* ── Nebula glow — CSS animation instead of Framer Motion ── */}
             <div
@@ -445,7 +454,7 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
                 style={{ opacity: isActive ? 1 : 0, transitionDelay: "3s" }}
             >
                 <span className="text-white/20 text-xs tracking-[0.3em] uppercase">
-                    আমাদের আকাশে {MEMORIES.length}টি ঝলমলে স্মৃতি
+                    আমাদের আকাশে ঝলমলে স্মৃতি
                 </span>
             </div>
         </>

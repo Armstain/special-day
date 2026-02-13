@@ -158,6 +158,7 @@ function fadeInAudio(audio: HTMLAudioElement | null, targetVolume: number, durat
 // ═══════════════════════════════════════════════════════
 
 export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: WelcomeGateProps) {
+    const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
     // Refs
     const containerRef = useRef<HTMLDivElement>(null);
     const leftCurtainRef = useRef<HTMLDivElement>(null);
@@ -215,12 +216,12 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
     // ═══════════════════════════════════════════════════════
 
     useEffect(() => {
-        const clockAudio = new Audio("/special-day/cinematic-clock-ticking.mp3");
+        const clockAudio = new Audio(`${publicBasePath}/cinematic-clock-ticking.mp3`);
         clockAudio.loop = true;
         clockAudio.volume = 0;
         clockAudioRef.current = clockAudio;
 
-        const ambienceAudio = new Audio("/special-day/ambience_music.mp3");
+        const ambienceAudio = new Audio(`${publicBasePath}/ambience_music.mp3`);
         ambienceAudio.loop = true;
         ambienceAudio.volume = 0;
         ambienceAudioRef.current = ambienceAudio;
@@ -231,7 +232,7 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
             ambienceAudio.pause();
             ambienceAudio.src = "";
         };
-    }, []);
+    }, [publicBasePath]);
 
     // ═══════════════════════════════════════════════════════
     // AUDIO UNLOCK ON USER GESTURE

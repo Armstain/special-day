@@ -8,6 +8,7 @@ interface MusicToggleProps {
 }
 
 export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
+    const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fadeRafRef = useRef<number | null>(null);
@@ -50,7 +51,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     );
 
     useEffect(() => {
-        const audio = new Audio("/special-day/Abar.mp3");
+        const audio = new Audio(`${publicBasePath}/Abar.mp3`);
         audio.loop = true;
         audio.volume = 0;
         audio.preload = "auto";
@@ -69,7 +70,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
             audio.pause();
             audio.src = "";
         };
-    }, [cancelFade]);
+    }, [cancelFade, publicBasePath]);
 
     const playWithFadeIn = useCallback(async () => {
         const audio = audioRef.current;
@@ -147,7 +148,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1 }}
-            title={isPlaying ? "পপির সুর থামাও" : "পপির সুর চালাও"}
+            title={isPlaying ? "সুর থামাও" : "সুর চালাও"}
         >
             {isPlaying ? (
                 <div className="flex items-end gap-0.5 h-5">
