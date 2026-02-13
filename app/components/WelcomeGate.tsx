@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import { useCurtainPhysics } from "../hooks/useCurtainPhysics";
-import { createAudioWithFallback } from "./audioUtils";
 
 // ═══════════════════════════════════════════════════════
 // CONSTANTS
@@ -216,12 +215,12 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
     // ═══════════════════════════════════════════════════════
 
     useEffect(() => {
-        const clockAudio = createAudioWithFallback("cinematic-clock-ticking.mp3");
+        const clockAudio = new Audio("cinematic-clock-ticking.mp3");
         clockAudio.loop = true;
         clockAudio.volume = 0;
         clockAudioRef.current = clockAudio;
 
-        const ambienceAudio = createAudioWithFallback("ambience_music.mp3");
+        const ambienceAudio = new Audio("ambience_music.mp3");
         ambienceAudio.loop = true;
         ambienceAudio.volume = 0;
         ambienceAudioRef.current = ambienceAudio;

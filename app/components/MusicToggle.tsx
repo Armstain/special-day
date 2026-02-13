@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { createAudioWithFallback } from "./audioUtils";
 
 interface MusicToggleProps {
     shouldStart?: boolean;
@@ -51,7 +50,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     );
 
     useEffect(() => {
-        const audio = createAudioWithFallback("Abar.mp3");
+        const audio = new Audio("Abar.mp3");
         audio.loop = true;
         audio.volume = 0;
         audio.preload = "auto";
