@@ -55,7 +55,7 @@ const QUESTIONS: Question[] = [
     },
     {
         emoji: "🌹",
-        title: "আমাদের পারফেক্ট ভবিষ্যৎ ভ্যালেন্টাইনস ডে হবে…",
+        title: "আমাদের পারফেক্ট বিশেষ দিনটি হবে…",
         options: [
             "অনেক ড্রামাটিক, সবাই জানবে",
             "শান্ত, শুধু আমরা",
@@ -88,14 +88,14 @@ const QUESTIONS: Question[] = [
 const OPTION_LETTERS = ["A", "B", "C", "D"];
 const STAMP_ROTATIONS = [-3, 5, -4, 3, -5, 4];
 
-type Phase = "title" | "quiz" | "transition" | "stamps";
+type Phase = "title" | "quiz" | "stamps";
 
 export default function EmotionalGame({ isActive = false, onNext }: { isActive?: boolean; onNext?: (allAnswers: string[]) => void }) {
     const [phase, setPhase] = useState<Phase>("title");
     const [currentQ, setCurrentQ] = useState(0);
     const [answers, setAnswers] = useState<string[]>([]);
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-    const [transitionText, setTransitionText] = useState("");
+
     const titleRef = useRef<HTMLHeadingElement>(null);
     const stampsRef = useRef<HTMLDivElement>(null);
     const sectionRef = useRef<HTMLDivElement>(null);
@@ -125,7 +125,7 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
         }
     }, [isActive, phase]);
 
-    // Stamp pop animation (GSAP) + auto-advance after overview
+    // Stamp pop animation (GSAP)
     useEffect(() => {
         if (phase === "stamps" && stampsRef.current) {
             const ctx = gsap.context(() => {
@@ -146,29 +146,14 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
                 }
             }, stampsRef);
 
-            // Auto-advance to next section after 5 seconds
-            const timer = setTimeout(() => {
-                if (onNext) onNext(answersRef.current);
-            }, 5000);
-
             return () => {
                 ctx.revert();
-                clearTimeout(timer);
             };
         }
-    }, [phase, onNext]);
+    }, [phase]);
 
     const startTransition = useCallback(() => {
-        setPhase("transition");
-        setTransitionText("এই উত্তরগুলোর পরে…");
-
-        setTimeout(() => {
-            setTransitionText("তাহলে…");
-        }, 2000);
-
-        setTimeout(() => {
-            setPhase("stamps");
-        }, 4000);
+        setPhase("stamps");
     }, []);
 
     // Handle option selection
@@ -193,7 +178,6 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
         setCurrentQ(0);
         setAnswers([]);
         setSelectedIdx(null);
-        setTransitionText("");
     }, []);
 
     return (
@@ -377,31 +361,7 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
                     </motion.div>
                 )}
 
-                {/* ═══ TRANSITION SCREEN ═══ */}
-                {phase === "transition" && (
-                    <motion.div
-                        key="transition"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="flex items-center justify-center relative z-10"
-                    >
-                        <AnimatePresence mode="wait">
-                            <motion.p
-                                key={transitionText}
-                                className="text-2xl sm:text-4xl md:text-5xl font-semibold text-charcoal/70 italic"
-                                style={{ fontFamily: "var(--font-serif)" }}
-                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                                transition={{ duration: 0.6 }}
-                            >
-                                {transitionText}
-                            </motion.p>
-                        </AnimatePresence>
-                    </motion.div>
-                )}
+
 
 
                 {/* ═══ STAMPS OVERVIEW ═══ */}
@@ -461,25 +421,17 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
                             ))}
                         </div>
 
-                        {/* Auto-advancing indicator */}
-                        <motion.div
-                            className="flex flex-col items-center gap-3"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 2 }}
+                        <motion.button
+                            onClick={() => onNext?.(answersRef.current)}
+                            className="mt-8 bg-rose-deep text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:bg-rose-deep/90 transition-all cursor-pointer"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                         >
-                            <motion.div
-                                className="w-32 h-1 rounded-full bg-rose-deep/20 overflow-hidden"
-                            >
-                                <motion.div
-                                    className="h-full bg-rose-deep rounded-full"
-                                    initial={{ width: "0%" }}
-                                    animate={{ width: "100%" }}
-                                    transition={{ duration: 3, delay: 2, ease: "linear" }}
-                                />
-                            </motion.div>
-                            <p className="text-xs text-charcoal/30">পরের ধাপে যাচ্ছে…</p>
-                        </motion.div>
+                            সামনে এগোই ✨
+                        </motion.button>
 
                         <motion.button
                             onClick={restart}

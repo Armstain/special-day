@@ -62,9 +62,9 @@ function renderCardToCanvas(message: string, stamps: string[] = []): HTMLCanvasE
     ctx.textAlign = "center";
 
     ctx.globalAlpha = 0.3;
-    ctx.fillText("শুভ ভালোবাসা দিবস", W / 2 + 2, 292);
+    ctx.fillText("আমাদের বিশেষ দিন", W / 2 + 2, 292);
     ctx.globalAlpha = 1;
-    ctx.fillText("শুভ ভালোবাসা দিবস", W / 2, 290);
+    ctx.fillText("আমাদের বিশেষ দিন", W / 2, 290);
 
     // Custom message or default quote
     ctx.fillStyle = "rgba(255,255,255,0.9)";
@@ -96,9 +96,14 @@ function renderCardToCanvas(message: string, stamps: string[] = []): HTMLCanvasE
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 5]);
 
-            const textWidth = ctx.measureText(stamp).width;
-            const boxW = Math.max(250, textWidth + 40);
-            const boxH = 100;
+            // Wrap stamp text to fit in a reasonable box width (e.g. 300px)
+            const maxBoxW = 300;
+            ctx.font = "500 20px 'Anek Bangla', sans-serif";
+            const stampLines = wrapText(ctx, "📍 " + stamp, maxBoxW - 40, 20);
+
+            const boxW = maxBoxW;
+            const lineHeight = 30;
+            const boxH = Math.max(80, stampLines.length * lineHeight + 40);
 
             ctx.beginPath();
             ctx.roundRect(-boxW / 2, -boxH / 2, boxW, boxH, 12);
@@ -106,10 +111,14 @@ function renderCardToCanvas(message: string, stamps: string[] = []): HTMLCanvasE
             ctx.stroke();
 
             ctx.fillStyle = "#D7263D";
-            ctx.font = "500 20px 'Anek Bangla', sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText("📍 " + stamp, 0, 0);
+
+            // Draw lines centered vertically
+            const startLineY = -(stampLines.length - 1) * lineHeight / 2;
+            stampLines.forEach((line, idx) => {
+                ctx.fillText(line, 0, startLineY + idx * lineHeight);
+            });
 
             ctx.restore();
         });
@@ -119,7 +128,7 @@ function renderCardToCanvas(message: string, stamps: string[] = []): HTMLCanvasE
     ctx.fillStyle = "rgba(255,255,255,0.5)";
     ctx.font = "500 16px 'Anek Bangla', sans-serif";
     ctx.setLineDash([]);
-    ctx.fillText("♡  ১৪ ফেব্রুয়ারি, ২০২৬  ♡", W / 2, H - 80);
+    ctx.fillText("♡  আমাদের জীবনের গল্প  ♡", W / 2, H - 80);
 
     // Bottom decorative line
     const lineGrad = ctx.createLinearGradient(W * 0.2, 0, W * 0.8, 0);
@@ -188,6 +197,7 @@ export default function ShareCardGenerator({ isActive = false, answers = [] }: {
     const [selectedStamps, setSelectedStamps] = useState<string[]>([]);
     const [isDownloading, setIsDownloading] = useState(false);
     const [noButtonOffset, setNoButtonOffset] = useState({ x: 0, y: 0 });
+    const [isGlitching, setIsGlitching] = useState(false);
     const sectionRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
     const cardTitleRef = useRef<HTMLDivElement>(null);
@@ -240,6 +250,11 @@ export default function ShareCardGenerator({ isActive = false, answers = [] }: {
         });
     }, []);
 
+    const handleNoClick = useCallback(() => {
+        setIsGlitching(true);
+        setTimeout(() => setIsGlitching(false), 2000);
+    }, []);
+
     const toggleStamp = useCallback((stamp: string) => {
         setSelectedStamps((prev) => {
             if (prev.includes(stamp)) {
@@ -266,7 +281,33 @@ export default function ShareCardGenerator({ isActive = false, answers = [] }: {
     }, [customMessage, selectedStamps]);
 
     return (
-        <div ref={sectionRef} className="flex flex-col items-center justify-center text-center px-4 w-full">
+        <div ref={sectionRef} className={`flex flex-col items-center justify-center text-center px-4 w-full relative ${isGlitching ? "glitch-mode" : ""}`}>
+            {isGlitching && (
+                <style jsx global>{`
+                    .glitch-mode {
+                        animation: shift-glitch 0.2s infinite;
+                        filter: contrast(150%) hue-rotate(90deg);
+                        overflow: hidden;
+                    }
+                    @keyframes shift-glitch {
+                        0% { transform: translate(0, 0) skew(0deg); }
+                        20% { transform: translate(-5px, 5px) skew(2deg); }
+                        40% { transform: translate(-5px, -5px) skew(-2deg); }
+                        60% { transform: translate(5px, 5px) skew(2deg); }
+                        80% { transform: translate(5px, -5px) skew(-2deg); }
+                        100% { transform: translate(0, 0) skew(0deg); }
+                    }
+                    .glitch-overlay {
+                        position: fixed;
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(0,0,0,0.2);
+                        z-index: 9999;
+                        pointer-events: none;
+                        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E");
+                    }
+                `}</style>
+            )}
+            {isGlitching && <div className="glitch-overlay" />}
             {/* Background decorations */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {Array.from({ length: 8 }, (_, i) => (
@@ -315,7 +356,7 @@ export default function ShareCardGenerator({ isActive = false, answers = [] }: {
                         >
                             <SplitText text="তুমি কি" />
                             <br />
-                            <SplitText text="আমার ভ্যালেন্টাইন?" />
+                            <SplitText text="সারাজীবন আমার থাকবে?" />
                         </h2>
 
                         <motion.p
@@ -369,6 +410,7 @@ export default function ShareCardGenerator({ isActive = false, answers = [] }: {
                                     }}
                                     onMouseEnter={handleNoHover}
                                     onTouchStart={handleNoHover}
+                                    onClick={handleNoClick}
                                 >
                                     না 😢
                                 </button>

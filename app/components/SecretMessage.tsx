@@ -10,7 +10,7 @@ const MESSAGE_LINES = [
     "একটি মুহূর্তই যথেষ্ট।",
     "সেই মুহূর্তটা আমি তোমাকেই দিতে চাই।",
     "",
-    "Will you be my Valentine?",
+    "সারাটা জীবন আমার পাশে থেকো।",
 ];
 
 // Helper to split text

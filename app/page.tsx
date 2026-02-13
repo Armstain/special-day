@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import Lenis from "lenis";
 import { toBengaliNumber } from "./components/textUtils";
 
 // Dynamic SSR-free imports
@@ -35,7 +34,8 @@ export default function Home() {
   const [collectedStamps, setCollectedStamps] = useState<string[]>([]);
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const lenisRef = useRef<Lenis | null>(null);
+  const [showNav, setShowNav] = useState(false);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentRef = useRef(0);
   const isAnimatingRef = useRef(false);
   const total = SECTIONS.length;
@@ -126,58 +126,43 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev]);
 
-  // ── Lenis smooth scroll for wheel/trackpad ──
+  // ── Wheel scroll — one slide per scroll gesture ──
   useEffect(() => {
-    // Removed scrollAccumulator as we now use immediate velocity checks
-    // let scrollAccumulator = 0;
-    // let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+    let cooldown = false;
 
-    const lenis = new Lenis({
-      wrapper: window as unknown as HTMLElement,
-      content: document.documentElement,
-      duration: 1.4,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      smoothWheel: true,
-      touchMultiplier: 2,
-      infinite: false,
-    });
-
-    lenisRef.current = lenis;
-
-    // Override default scroll — capture Lenis virtual scroll for our section navigation
-    lenis.on("scroll", ({ velocity }: { velocity: number }) => {
-      // If currently animating, ignore scroll events to prevent double-skipping
-      if (isAnimatingRef.current) return;
-
-      // Threshold check: trigger only on significant scroll
-      if (Math.abs(velocity) > 0.8) {
-        if (velocity > 0) goNext();
-        else goPrev();
-      }
-    });
-
-    // Sync Lenis with GSAP ticker
-    gsap.ticker.lagSmoothing(500, 33); // Re-enable lag smoothing for slower PCs
-    const tickerCallback = (time: number) => {
-      lenis.raf(time * 1000);
-    };
-    gsap.ticker.add(tickerCallback);
-
-    // Prevent native scroll on the viewport
-    const preventScroll = (e: WheelEvent) => {
+    const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-    };
-    window.addEventListener("wheel", preventScroll, { passive: false });
+      if (cooldown || isAnimatingRef.current) return;
 
-    return () => {
-      lenis.destroy();
-      lenisRef.current = null;
-      gsap.ticker.remove(tickerCallback);
-      window.removeEventListener("wheel", preventScroll);
-      // Removed scrollTimeout cleanup
+      // Determine dominant axis
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (Math.abs(delta) < 30) return; // ignore tiny ticks
+
+      cooldown = true;
+      if (delta > 0) goNext();
+      else goPrev();
+
+      // Cooldown prevents rapid-fire multi-slide jumps
+      setTimeout(() => { cooldown = false; }, 800);
     };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
   }, [goNext, goPrev]);
+
+  // ── Show / hide sidebar nav on mouse activity ──
+  useEffect(() => {
+    const handleMouseMove = () => {
+      setShowNav(true);
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+      navTimerRef.current = setTimeout(() => setShowNav(false), 2000);
+    };
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, []);
 
   // ── Touch swipe navigation ──
   useEffect(() => {
@@ -274,7 +259,12 @@ export default function Home() {
         </span>
       </motion.div>
 
-      <nav className={`fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-101 flex flex-col items-center gap-5 transition-opacity duration-700 ${showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+      {/* ── Side navigation dots (auto-hide) ── */}
+      <nav
+        className={`fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-101 flex flex-col items-center gap-5
+          transition-opacity duration-500 ${showWelcome ? 'opacity-0 pointer-events-none' : ''}
+          ${showNav ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      >
         {SECTIONS.map((sec, i) => (
           <motion.button
             key={sec.id}
@@ -337,89 +327,6 @@ export default function Home() {
         ))}
       </nav>
 
-      <div className={`fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-101 flex items-center gap-4 sm:gap-6 transition-opacity duration-700 ${showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        <motion.button
-          onClick={goPrev}
-          disabled={current === 0 || isAnimating}
-          className={`group flex items-center gap-2 px-5 py-3 sm:px-7 sm:py-3.5 rounded-full
-            font-medium text-sm sm:text-base transition-all duration-300 cursor-pointer
-            disabled:opacity-0 disabled:pointer-events-none
-            ${isStarSection
-              ? "bg-white/10 text-white/80 hover:bg-white/20 backdrop-blur-md border border-white/10"
-              : "bg-white/70 text-charcoal/80 hover:bg-white hover:text-charcoal shadow-lg hover:shadow-xl backdrop-blur-sm border border-pink-soft/30"
-            }`}
-          whileHover={{ scale: 1.05, x: -3 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: current === 0 ? 0 : 1, y: current === 0 ? 10 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="nav-arrow-left"
-          >
-            <path d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          <span className="hidden sm:inline">পেছনে</span>
-        </motion.button>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current}
-            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium tracking-wide
-              ${isStarSection
-                ? "bg-white/5 text-gold/70 border border-gold/20 backdrop-blur-md"
-                : "bg-rose-deep/10 text-rose-deep/70 border border-rose-deep/15"
-              }`}
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.9 }}
-            transition={{ duration: 0.3 }}
-          >
-            {SECTIONS[current].label} {SECTIONS[current].name}
-          </motion.div>
-        </AnimatePresence>
-
-        <motion.button
-          onClick={goNext}
-          disabled={current === total - 1 || isAnimating}
-          className={`group flex items-center gap-2 px-5 py-3 sm:px-7 sm:py-3.5 rounded-full
-            font-medium text-sm sm:text-base transition-all duration-300 cursor-pointer
-            disabled:opacity-0 disabled:pointer-events-none
-            ${isStarSection
-              ? "bg-white/10 text-white/80 hover:bg-white/20 backdrop-blur-md border border-white/10"
-              : "bg-linear-to-r from-rose-deep to-pink-soft text-white shadow-lg hover:shadow-xl hover:shadow-rose-deep/20"
-            }`}
-          whileHover={{ scale: 1.05, x: 3 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: current === total - 1 ? 0 : 1, y: current === total - 1 ? 10 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <span className="hidden sm:inline">পরেরটি</span>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="nav-arrow-right"
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </motion.button>
-      </div>
-
       {/* ── Horizontal Track ───────────────────────────── */}
       <div ref={trackRef} className="journey-track">
         {/* Section 1: Hero */}
@@ -465,28 +372,96 @@ export default function Home() {
 
         {/* Section 6: Footer */}
         <section className="panel panel-footer">
-          <div className="section-content w-full h-full flex flex-col items-center justify-center text-center px-4">
+          <div className="section-content w-full h-full flex flex-col items-center justify-center text-center px-4 relative">
+            {/* Background floating hearts for footer */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {Array.from({ length: 15 }, (_, i) => (
+                <motion.div
+                  key={`footer-heart-${i}`}
+                  className="absolute text-rose-deep/5"
+                  initial={{ y: "100vh", x: Math.random() * 100 + "vw", opacity: 0 }}
+                  animate={{
+                    y: "-10vh",
+                    opacity: [0, 0.4, 0],
+                    rotate: Math.random() * 360
+                  }}
+                  transition={{
+                    duration: 10 + Math.random() * 10,
+                    repeat: Infinity,
+                    delay: Math.random() * 5,
+                    ease: "linear"
+                  }}
+                  style={{ fontSize: 20 + Math.random() * 40 }}
+                >
+                  ❤
+                </motion.div>
+              ))}
+            </div>
+
             <motion.div
-              className="text-6xl sm:text-7xl mb-8"
-              animate={{ scale: [1, 1.15, 1, 1.08, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              className="relative mb-8 sm:mb-12"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
             >
-              💕
+              {/* Circular Text "To Be Continued" */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <svg viewBox="0 0 100 100" width="160" height="160" className="opacity-20">
+                  <path id="circlePath" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
+                  <text>
+                    <textPath href="#circlePath" fill="#D7263D" className="text-[10px] fon-bold tracking-[0.2em] uppercase">
+                      • To Be Continued • To Be Continued • To Be Continued
+                    </textPath>
+                  </text>
+                </svg>
+              </motion.div>
+
+              <motion.div
+                className="text-7xl sm:text-8xl md:text-9xl relative z-10 drop-shadow-2xl"
+                animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                💖
+              </motion.div>
             </motion.div>
-            <p
-              className="text-charcoal/40 text-xl sm:text-2xl italic max-w-md"
+
+            <h2
+              className="text-3xl sm:text-5xl md:text-6xl font-bold italic text-charcoal mb-6 sm:mb-8"
               style={{ fontFamily: "var(--font-serif)" }}
             >
               এই গল্পটা এখানেই শেষ না।
+            </h2>
+
+            <p className="text-charcoal/60 text-lg sm:text-xl max-w-lg leading-relaxed mb-10 sm:mb-14">
+              প্রতিটা দিনই আমাদের জন্য বিশেষ,<br />
+              আজ শুধু একটু মনে করিয়ে দেয়া।<br />
+              <span className="block mt-4 text-rose-deep font-medium">— শুধু তোমার জন্য</span>
             </p>
-            <motion.p
-              className="text-charcoal/25 text-sm mt-6 tracking-widest"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
+
+            <motion.button
+              onClick={() => goTo(0)}
+              className="group relative px-8 py-3 rounded-full border border-charcoal/10 bg-white/50 backdrop-blur-sm 
+                           hover:bg-rose-deep hover:border-rose-deep hover:text-white transition-all duration-300
+                           text-charcoal/60 font-medium tracking-wide text-sm sm:text-base cursor-pointer overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              ...............
-            </motion.p>
+              <span className="relative z-10 flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-rotate-180 transition-transform duration-500">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                শুরু থেকে দেখো
+              </span>
+            </motion.button>
+
+            <div className="absolute bottom-6 text-charcoal/10 text-xs tracking-[0.5em] uppercase">
+              Forever & Always
+            </div>
           </div>
         </section>
       </div>
