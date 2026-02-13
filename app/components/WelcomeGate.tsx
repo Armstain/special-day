@@ -85,6 +85,7 @@ const MESSAGES = {
     pullInstruction: "টেনে ধরে দুদিকে সরাও",
     errorWrongName: "তুমি তার নামই জানো না? 💔",
     errorTooEarly: "এখনো সময় আসেনি... অপেক্ষা করো 💕",
+    timerComplete: "সময় হয়েছে... 💕",
     countdownLabels: {
         days: "দিন",
         hours: "ঘণ্টা",
@@ -92,6 +93,11 @@ const MESSAGES = {
         seconds: "সেকেন্ড",
     },
 } as const;
+
+// Celebration particle presets
+const CELEBRATION_EMOJIS = ["💕", "❤️", "💖", "✨", "🌟", "💗", "🩷", "💫"];
+const CELEBRATION_PARTICLE_COUNT = 40;
+const SPARKLE_COUNT = 25;
 
 // ═══════════════════════════════════════════════════════
 // TYPES
@@ -186,6 +192,16 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
     const [shaking, setShaking] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [timerDone, setTimerDone] = useState(false);
+    const [celebrating, setCelebrating] = useState(false);
+    const [celebrationParticles, setCelebrationParticles] = useState<Array<{
+        id: number; emoji: string; x: number; y: number; angle: number;
+        distance: number; duration: number; delay: number; size: number; rotation: number;
+    }>>([]);
+    const [sparkles, setSparkles] = useState<Array<{
+        id: number; x: number; y: number; size: number; delay: number; duration: number;
+    }>>([]);
+    const celebrationMsgRef = useRef<HTMLDivElement>(null);
+    const countdownWrapperRef = useRef<HTMLDivElement>(null);
 
     // Keep phase ref in sync
     useEffect(() => {
@@ -257,18 +273,187 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
     // COUNTDOWN TIMER
     // ═══════════════════════════════════════════════════════
 
+    // ═══════════════════════════════════════════════════════
+    // CELEBRATION ANIMATION
+    // ═══════════════════════════════════════════════════════
+
+    const triggerCelebration = useCallback(() => {
+        setCelebrating(true);
+
+        // Generate burst particles
+        const particles = Array.from({ length: CELEBRATION_PARTICLE_COUNT }, (_, i) => ({
+            id: i,
+            emoji: CELEBRATION_EMOJIS[i % CELEBRATION_EMOJIS.length],
+            x: 50, // start from center %
+            y: 40, // match countdown position
+            angle: (360 / CELEBRATION_PARTICLE_COUNT) * i + (Math.random() * 20 - 10),
+            distance: 120 + Math.random() * 200,
+            duration: 1.8 + Math.random() * 1.5,
+            delay: Math.random() * 0.6,
+            size: 16 + Math.random() * 20,
+            rotation: Math.random() * 720 - 360,
+        }));
+        setCelebrationParticles(particles);
+
+        // Generate sparkle particles
+        const newSparkles = Array.from({ length: SPARKLE_COUNT }, (_, i) => ({
+            id: i,
+            x: 20 + Math.random() * 60,
+            y: 15 + Math.random() * 70,
+            size: 3 + Math.random() * 6,
+            delay: Math.random() * 1.5,
+            duration: 0.8 + Math.random() * 1.2,
+        }));
+        setSparkles(newSparkles);
+
+        // GSAP celebration timeline
+        const celTl = gsap.timeline();
+
+        // 1. Flash the countdown golden & scale up
+        if (countdownWrapperRef.current) {
+            const digits = countdownWrapperRef.current.querySelectorAll(".bat-signal-text");
+            const labels = countdownWrapperRef.current.querySelectorAll(".bat-signal-label");
+
+            celTl.to(digits, {
+                color: "#FFD166",
+                filter: "blur(0px) drop-shadow(0 0 20px rgba(255,209,102,0.8))",
+                textShadow: "0 0 30px rgba(255,209,102,0.6), 0 0 60px rgba(255,209,102,0.3)",
+                scale: 1.15,
+                duration: 0.6,
+                ease: "power2.out",
+                stagger: 0.05,
+            }, 0);
+
+            celTl.to(labels, {
+                color: "rgba(255,209,102,0.7)",
+                filter: "blur(0px)",
+                duration: 0.6,
+                ease: "power2.out",
+            }, 0);
+        }
+
+        // 2. Spotlight golden shimmer
+        if (spotlightRef.current) {
+            celTl.to(spotlightRef.current, {
+                background: `radial-gradient(
+                    circle,
+                    rgba(255, 209, 102, 0.5) 0%,
+                    rgba(255, 230, 150, 0.35) 15%,
+                    rgba(255, 245, 200, 0.2) 30%,
+                    rgba(255, 240, 180, 0.1) 50%,
+                    rgba(255, 235, 160, 0.03) 70%,
+                    rgba(0, 0, 0, 0) 85%
+                )`,
+                duration: 0.8,
+                ease: "power2.out",
+            }, 0.1);
+
+            // Return spotlight to normal
+            celTl.to(spotlightRef.current, {
+                background: SPOTLIGHT_GRADIENT,
+                duration: 1.5,
+                ease: "power2.inOut",
+            }, 1.5);
+        }
+
+        // 3. Show the "time has come" message
+        if (celebrationMsgRef.current) {
+            celTl.fromTo(celebrationMsgRef.current,
+                { opacity: 0, y: 15, scale: 0.8 },
+                {
+                    opacity: 1, y: 0, scale: 1,
+                    duration: 0.8,
+                    ease: "back.out(1.4)",
+                }, 0.5
+            );
+
+            // Fade the message out after a while
+            celTl.to(celebrationMsgRef.current, {
+                opacity: 0, y: -10,
+                duration: 0.6,
+                ease: "power2.in",
+            }, 3.5);
+        }
+
+        // 4. Restore countdown to normal (white) colors
+        if (countdownWrapperRef.current) {
+            const digits = countdownWrapperRef.current.querySelectorAll(".bat-signal-text");
+            const labels = countdownWrapperRef.current.querySelectorAll(".bat-signal-label");
+
+            celTl.to(digits, {
+                color: "rgba(0, 0, 0, 0.9)",
+                filter: "blur(1.5px)",
+                textShadow: "0 0 8px rgba(0,0,0,0.1), 0 0 20px rgba(0,0,0,0.1), 0 0 40px rgba(0,0,0,0.1), 0 0 4px rgba(255,255,255,0.15)",
+                scale: 1,
+                duration: 1.0,
+                ease: "power2.inOut",
+            }, 2.5);
+
+            celTl.to(labels, {
+                color: "rgba(0, 0, 0, 0.6)",
+                filter: "blur(0.8px)",
+                duration: 1.0,
+                ease: "power2.inOut",
+            }, 2.5);
+        }
+
+        // 5. Add golden glow to the input field
+        if (inputRef.current) {
+            celTl.to(inputRef.current, {
+                borderColor: "rgba(255,209,102,0.5)",
+                boxShadow: "0 0 20px rgba(255,209,102,0.2), 0 0 40px rgba(255,209,102,0.1)",
+                duration: 1.0,
+                ease: "power2.out",
+            }, 0.8);
+
+            // Pulse the glow
+            celTl.to(inputRef.current, {
+                boxShadow: "0 0 12px rgba(255,209,102,0.15), 0 0 25px rgba(255,209,102,0.08)",
+                duration: 1.5,
+                ease: "power2.inOut",
+                yoyo: true,
+                repeat: 2,
+            }, 2.0);
+
+            // Settle to a subtle unlocked glow
+            celTl.to(inputRef.current, {
+                borderColor: "rgba(255,209,102,0.3)",
+                boxShadow: "0 0 8px rgba(255,209,102,0.1)",
+                duration: 0.6,
+            });
+        }
+
+        // Clean up particles after animation
+        setTimeout(() => {
+            setCelebrationParticles([]);
+            setSparkles([]);
+            setCelebrating(false);
+        }, 5000);
+    }, []);
+
     useEffect(() => {
+        const initial = getTimeLeft();
+        // If already past target date on mount
+        if (initial.total === 0) {
+            setTimerDone(true);
+            return;
+        }
+
         const timer = setInterval(() => {
             const tl = getTimeLeft();
             setTimeLeft(tl);
             if (tl.total === 0) {
                 setTimerDone(true);
                 clearInterval(timer);
+                // Trigger celebration only if she's watching the countdown
+                if (phaseRef.current === "spotlight" || phaseRef.current === "validation") {
+                    triggerCelebration();
+                }
             }
         }, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [triggerCelebration]);
 
     // ═══════════════════════════════════════════════════════
     // PHASE ORCHESTRATION
@@ -697,7 +882,7 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
                 className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 z-40 flex flex-col items-center text-center pointer-events-none"
                 style={{ opacity: 0 }}
             >
-                <div className="flex items-center gap-2 sm:gap-4 md:gap-5">
+                <div ref={countdownWrapperRef} className="flex items-center gap-2 sm:gap-4 md:gap-5">
                     {(["hours", "minutes", "seconds"] as const).map((unit, idx) => (
                         <div key={unit} className="flex items-center gap-2 sm:gap-4 md:gap-5">
                             {idx > 0 && (
@@ -719,7 +904,70 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
                         </div>
                     ))}
                 </div>
+
+                {/* "Time has come" celebration message */}
+                <div
+                    ref={celebrationMsgRef}
+                    className="mt-6 sm:mt-8"
+                    style={{ opacity: 0 }}
+                >
+                    <p
+                        className="text-lg sm:text-2xl md:text-3xl font-medium tracking-wide"
+                        style={{
+                            fontFamily: "var(--font-serif)",
+                            color: "#FFD166",
+                            textShadow: "0 0 20px rgba(255,209,102,0.5), 0 0 40px rgba(255,209,102,0.2)",
+                        }}
+                    >
+                        {MESSAGES.timerComplete}
+                    </p>
+                </div>
             </div>
+
+            {/* Celebration Particles (heart burst) */}
+            {celebrating && (
+                <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
+                    {celebrationParticles.map((p) => {
+                        const rad = (p.angle * Math.PI) / 180;
+                        const endX = Math.cos(rad) * p.distance;
+                        const endY = Math.sin(rad) * p.distance;
+                        return (
+                            <div
+                                key={`cel-${p.id}`}
+                                className="absolute celebration-particle"
+                                style={{
+                                    left: `${p.x}%`,
+                                    top: `${p.y}%`,
+                                    fontSize: p.size,
+                                    '--cel-end-x': `${endX}px`,
+                                    '--cel-end-y': `${endY}px`,
+                                    '--cel-rotation': `${p.rotation}deg`,
+                                    '--cel-duration': `${p.duration}s`,
+                                    '--cel-delay': `${p.delay}s`,
+                                } as React.CSSProperties}
+                            >
+                                {p.emoji}
+                            </div>
+                        );
+                    })}
+
+                    {/* Sparkle particles */}
+                    {sparkles.map((s) => (
+                        <div
+                            key={`sparkle-${s.id}`}
+                            className="absolute celebration-sparkle"
+                            style={{
+                                left: `${s.x}%`,
+                                top: `${s.y}%`,
+                                width: s.size,
+                                height: s.size,
+                                '--sparkle-delay': `${s.delay}s`,
+                                '--sparkle-duration': `${s.duration}s`,
+                            } as React.CSSProperties}
+                        />
+                    ))}
+                </div>
+            )}
 
             {/* Name Validation */}
             <div
