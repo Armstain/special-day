@@ -7,6 +7,9 @@ interface Trail {
     id: number;
     x: number;
     y: number;
+    vx: number;
+    vy: number;
+    rotate: number;
 }
 
 export default function CustomCursor() {
@@ -53,16 +56,23 @@ export default function CustomCursor() {
             const dy = e.clientY - lastTrail.current.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if (dist > 18) {
+            if (dist > 15) {
                 lastTrail.current = { x: e.clientX, y: e.clientY };
                 const id = trailId.current++;
+
+                // Add some initial velocity based on movement direction
+                const vx = (Math.random() - 0.5) * 4 + dx * 0.1;
+                const vy = (Math.random() - 0.2) * 2;
+                const rotate = Math.random() * 360;
+
                 setTrails((prev) => {
-                    const next = [...prev, { id, x: e.clientX, y: e.clientY }];
-                    return next.length > 18 ? next.slice(-18) : next;
+                    const next = [...prev, { id, x: e.clientX, y: e.clientY, vx, vy, rotate }];
+                    return next.length > 25 ? next.slice(-25) : next;
                 });
+
                 setTimeout(() => {
                     setTrails((prev) => prev.filter((t) => t.id !== id));
-                }, 700);
+                }, 2000);
             }
         };
 
@@ -91,6 +101,8 @@ export default function CustomCursor() {
         return null;
     }
 
+    const windowHeight = typeof window !== "undefined" ? window.innerHeight : 1000;
+
     return (
         <>
             {/* Trail particles */}
@@ -99,17 +111,27 @@ export default function CustomCursor() {
                     key={trail.id}
                     className="fixed pointer-events-none z-[9998]"
                     style={{ left: trail.x, top: trail.y }}
-                    initial={{ scale: 1, opacity: 0.7 }}
-                    animate={{ scale: 0, opacity: 0 }}
-                    transition={{ duration: 0.65, ease: "easeOut" }}
+                    initial={{ scale: 1, opacity: 0.8, x: 0, y: 0, rotate: trail.rotate }}
+                    animate={{
+                        x: trail.vx * 30,
+                        y: windowHeight - trail.y - 10,
+                        scale: [1, 1.2, 0.4],
+                        opacity: [0.8, 0.8, 0],
+                        rotate: trail.rotate + 180
+                    }}
+                    transition={{
+                        duration: 1.5,
+                        ease: "easeIn",
+                        times: [0, 0.8, 1]
+                    }}
                 >
                     {/* Heart-shaped trail particle */}
                     <svg
-                        width="10"
-                        height="10"
+                        width="14"
+                        height="14"
                         viewBox="0 0 24 24"
                         fill="#FFB7C5"
-                        className="-ml-[5px] -mt-[5px]"
+                        className="-ml-[7px] -mt-[7px]"
                         style={{
                             filter: "drop-shadow(0 0 4px rgba(255, 183, 197, 0.6))",
                         }}

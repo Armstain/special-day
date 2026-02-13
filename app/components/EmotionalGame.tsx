@@ -226,7 +226,7 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
                         animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                         exit={{ opacity: 0, y: -30 }}
                         transition={{ duration: 0.5 }}
-                        className="flex flex-col items-center w-full max-w-xl relative z-10"
+                        className="flex flex-col items-center w-full max-w-3xl relative z-10"
                     >
                         <motion.span
                             className="text-6xl sm:text-7xl md:text-8xl mb-6 sm:mb-8 inline-block"
@@ -238,7 +238,7 @@ export default function EmotionalGame({ isActive = false, onNext }: { isActive?:
 
                         <h2
                             ref={titleRef}
-                            className="text-2xl sm:text-4xl md:text-5xl font-bold italic text-charcoal mb-4 sm:mb-6 leading-snug"
+                            className="text-2xl sm:text-4xl md:text-5xl font-bold italic text-charcoal mb-4 sm:mb-6 "
                             style={{ fontFamily: "var(--font-serif)" }}
                         >
                             <SplitText text="এই মুহূর্তে যদি শুধু আমরা থাকতাম…" />

@@ -539,3 +539,146 @@ body {
 .stamp-badge:hover {
   transform: scale(1.08) rotate(0deg) !important;
 }
+
+/* ── Circular spotlight on curtain ────────────────── */
+.spotlight-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vw;
+  max-width: 100vh;
+  max-height: 100vh;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.7) 10%,
+      rgba(255, 255, 255, 0.4) 20%,
+      rgba(255, 255, 255, 0.1) 40%,
+      rgba(255, 255, 255, 0.02) 60%,
+      transparent 80%);
+  animation: spotlight-flicker 4s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+@keyframes spotlight-flicker {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  25% {
+    opacity: 0.93;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 0.96;
+  }
+
+  88% {
+    opacity: 1;
+  }
+}
+
+/* ── Bat-signal countdown shadow ─────────────────── */
+.bat-signal-text {
+  color: rgba(0, 0, 0, 0.9);
+  filter: blur(1.5px);
+  text-shadow:
+    0 0 8px rgba(0, 0, 0, 0.95),
+    0 0 20px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(0, 0, 0, 0.4),
+    0 0 4px rgba(255, 255, 255, 0.15);
+  animation: shadow-pulse 3s ease-in-out infinite;
+}
+
+.bat-signal-label {
+  color: rgba(0, 0, 0, 0.6);
+  filter: blur(0.8px);
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.15em;
+}
+
+@keyframes shadow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* ── Input shake for wrong answer ────────────────── */
+@keyframes input-shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  15% {
+    transform: translateX(-8px);
+  }
+
+  30% {
+    transform: translateX(8px);
+  }
+
+  45% {
+    transform: translateX(-6px);
+  }
+
+  60% {
+    transform: translateX(6px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+
+  90% {
+    transform: translateX(3px);
+  }
+}
+
+.input-shake {
+  animation: input-shake 0.5s ease-in-out;
+}
+
+/* ── Spotlight dust particles ────────────────────── */
+@keyframes dust-float {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.6;
+  }
+
+  80% {
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translateY(-40vh) translateX(20px);
+    opacity: 0;
+  }
+}
+
+.dust-particle {
+  animation: dust-float linear infinite;
+  will-change: transform, opacity;
+}

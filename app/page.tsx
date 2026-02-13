@@ -20,7 +20,7 @@ const ShareCardGenerator = dynamic(() => import("./components/ShareCardGenerator
 const WelcomeGate = dynamic(() => import("./components/WelcomeGate"), { ssr: false });
 
 const SECTIONS = [
-  { id: "hero", label: "♡", name: "অপেক্ষা" },
+  { id: "hero", label: "♡", name: "স্বাগতম" },
   { id: "letter", label: "✉", name: "চিঠি" },
   { id: "stars", label: "★", name: "স্মৃতি" },
   { id: "bridge", label: "🧩", name: "খেলা" },
@@ -36,7 +36,7 @@ export default function Home() {
 
   const trackRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
-  const currentRef = useRef(0); // mutable ref for Lenis callback
+  const currentRef = useRef(0);
   const isAnimatingRef = useRef(false);
   const total = SECTIONS.length;
 
@@ -128,9 +128,9 @@ export default function Home() {
 
   // ── Lenis smooth scroll for wheel/trackpad ──
   useEffect(() => {
-    // Accumulated scroll delta with Lenis momentum
-    let scrollAccumulator = 0;
-    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+    // Removed scrollAccumulator as we now use immediate velocity checks
+    // let scrollAccumulator = 0;
+    // let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const lenis = new Lenis({
       wrapper: window as unknown as HTMLElement,
@@ -147,17 +147,14 @@ export default function Home() {
 
     // Override default scroll — capture Lenis virtual scroll for our section navigation
     lenis.on("scroll", ({ velocity }: { velocity: number }) => {
-      // Accumulate velocity for section snapping
-      scrollAccumulator += velocity;
+      // If currently animating, ignore scroll events to prevent double-skipping
+      if (isAnimatingRef.current) return;
 
-      if (scrollTimeout) clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        if (Math.abs(scrollAccumulator) > 0.5) {
-          if (scrollAccumulator > 0) goNext();
-          else goPrev();
-        }
-        scrollAccumulator = 0;
-      }, 100);
+      // Threshold check: trigger only on significant scroll
+      if (Math.abs(velocity) > 0.8) {
+        if (velocity > 0) goNext();
+        else goPrev();
+      }
     });
 
     // Sync Lenis with GSAP ticker
@@ -178,7 +175,7 @@ export default function Home() {
       lenisRef.current = null;
       gsap.ticker.remove(tickerCallback);
       window.removeEventListener("wheel", preventScroll);
-      if (scrollTimeout) clearTimeout(scrollTimeout);
+      // Removed scrollTimeout cleanup
     };
   }, [goNext, goPrev]);
 
@@ -195,9 +192,23 @@ export default function Home() {
     const handleTouchEnd = (e: TouchEvent) => {
       const dx = e.changedTouches[0].clientX - touchStartX;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-        if (dx < 0) goNext();
-        else goPrev();
+
+      // Determine swipe direction: allow both horizontal and vertical swipes
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+
+      // Threshold for swipe
+      if (Math.max(absDx, absDy) > 50) {
+        // Horizontal swipe dominance
+        if (absDx > absDy) {
+          if (dx < 0) goNext();
+          else goPrev();
+        }
+        // Vertical swipe dominance (natural scroll feel)
+        else {
+          if (dy < 0) goNext(); // Swipe up -> move down (next)
+          else goPrev(); // Swipe down -> move up (prev)
+        }
       }
     };
 
@@ -466,7 +477,7 @@ export default function Home() {
               className="text-charcoal/40 text-xl sm:text-2xl italic max-w-md"
               style={{ fontFamily: "var(--font-serif)" }}
             >
-              তোমার জন্য, মনভরা ভালোবাসা দিয়ে
+              এই গল্পটা এখানেই শেষ না।
             </p>
             <motion.p
               className="text-charcoal/25 text-sm mt-6 tracking-widest"
@@ -474,7 +485,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
             >
-              শুভ ভালোবাসা দিবস ২০২৬
+              ...............
             </motion.p>
           </div>
         </section>

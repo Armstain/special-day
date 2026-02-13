@@ -9,6 +9,8 @@ interface Memory {
     id: number;
     x: number;
     y: number;
+    mobileX: number;
+    mobileY: number;
     title: string;
     date: string;
     description: string;
@@ -18,45 +20,66 @@ interface Memory {
 // ── CUSTOMIZE YOUR MEMORIES HERE ─────────────────────────────
 const MEMORIES: Memory[] = [
     {
-        id: 1, x: 15, y: 25,
-        title: "প্রথম হ্যালো",
-        date: "১২ ডিসেম্বর, ২০২৩",
-        description: "একটা ছোট্ট নোটিফিকেশন থেকেই আমাদের গল্পটা শুরু হয়ে গেল।",
-        icon: "👋",
+        id: 1, x: 18, y: 32, mobileX: 20, mobileY: 25,
+        title: "বাসের সেই দিন",
+        date: "২৮ আগস্ট",
+        description: "একটা বাস। দুজন মানুষ। ভাগ্য চুপচাপ লিখছিল।",
+        icon: "🚌",
     },
     {
-        id: 2, x: 45, y: 12,
-        title: "সেই রাতজাগা কল",
-        date: "০৪ জানুয়ারি, ২০২৪",
-        description: "কথা বলতে বলতে ভোর হয়ে গিয়েছিল, আর আমি বুঝে গিয়েছিলাম — এটাই আমার আপনজন।",
-        icon: "🌙",
+        id: 2, x: 40, y: 30, mobileX: 75, mobileY: 32,
+        title: "তোমার কণ্ঠ",
+        date: "২৩ সেপ্টেম্বর",
+        description: "তোমার কণ্ঠ। প্রথমবার। তারপর আর নীরবতা ছিল না।",
+        icon: "🎵",
     },
     {
-        id: 3, x: 78, y: 32,
-        title: "প্রথম ভালোবাসি বলা",
-        date: "১৪ ফেব্রুয়ারি, ২০২৪",
-        description: "কথার মাঝেই হঠাৎ বলে ফেলেছিলাম — আর সেটাই ছিল সবচেয়ে সুন্দর ভুল।",
+        id: 3, x: 65, y: 36, mobileX: 25, mobileY: 39,
+        title: "Love you",
+        date: "১৮ ডিসেম্বর",
+        description: "আমি বলেছিলাম — \"Love you.\" শব্দের চেয়ে অনুভূতি ভারী ছিল।",
+        icon: "💜",
+    },
+    {
+        id: 4, x: 82, y: 38, mobileX: 80, mobileY: 46,
+        title: "ছয়বার বলেছিলাম",
+        date: "২৬ ডিসেম্বর",
+        description: "ছয়বার বলেছিলাম। কারণ একবারে বিশ্বাস হচ্ছিল না কতটা সত্যি।",
+        icon: "💫",
+    },
+    {
+        id: 5, x: 25, y: 58, mobileX: 20, mobileY: 53,
+        title: "আটবার ভালোবাসি",
+        date: "৭ জানুয়ারি",
+        description: "তুমি আটবার \"ভালোবাসি\" বলেছিলে। প্রতিটা শব্দ আমার ভিতরে জায়গা করে নিয়েছিল।",
         icon: "❤️",
     },
     {
-        id: 4, x: 25, y: 62,
-        title: "এয়ারপোর্টের বিদায়",
-        date: "২০ মার্চ, ২০২৪",
-        description: "ছাড়তে না চাওয়া সেই আলিঙ্গন—তবুও জানতাম, এটা শেষ না; আবার দেখা হবেই।",
-        icon: "✈️",
+        id: 6, x: 52, y: 52, mobileX: 75, mobileY: 60,
+        title: "সময় থেমেছিল",
+        date: "১২ জানুয়ারি",
+        description: "সময় থেমেছিল। শুধু আমরা চলছিলাম।",
+        icon: "⏳",
     },
     {
-        id: 5, x: 60, y: 72,
-        title: "আমাদের আগামী",
-        date: "১০ জুলাই, ২০২৪",
-        description: "এখনো যাইনি এমন এক শহরে, একসাথে থাকার ছোট্ট স্বপ্ন গুছিয়ে ফেলছিলাম।",
-        icon: "🏡",
+        id: 7, x: 75, y: 64, mobileX: 25, mobileY: 67,
+        title: "তোমার চোখের জল",
+        date: "২১ জানুয়ারি",
+        description: "তোমার চোখের জল। আমার ভয় — আমি যেন কখনো কারণ না হই।",
+        icon: "🥺",
     },
     {
-        id: 6, x: 85, y: 50,
-        title: "এই মুহূর্ত",
-        date: "এখন",
-        description: "প্রতিদিন তোমার সাথে একটু একটু করে সবচেয়ে সুন্দর জীবনটা গড়ে উঠছে।",
+        id: 8, x: 38, y: 76, mobileX: 80, mobileY: 74,
+        title: "সাত ঘণ্টা",
+        date: "১ ফেব্রুয়ারি",
+        description: "সাত ঘণ্টা। দূরত্ব ছিল। কিন্তু আলাদা ছিলাম না।",
+        icon: "🌉",
+    },
+    {
+        id: 9, x: 62, y: 82, mobileX: 50, mobileY: 81,
+        title: "তুমি আমার নক্ষত্র",
+        date: "১৩ ফেব্রুয়ারি",
+        description: "এই আকাশ বানাচ্ছি। কারণ তুমি আমার নক্ষত্র।",
         icon: "✨",
     },
 ];
@@ -72,7 +95,7 @@ const SplitText = ({ text }: { text: string }) => (
     </span>
 );
 
-/* ── Shooting star (CSS-driven instead of Framer Motion infinite) ── */
+/* ── Shooting star ── */
 function ShootingStar({ delay }: { delay: number }) {
     const startX = useMemo(() => Math.random() * 60, []);
     const startY = useMemo(() => Math.random() * 30, []);
@@ -107,12 +130,16 @@ function Star({
     isActive,
     index,
     sectionActive,
+    x,
+    y,
 }: {
     memory: Memory;
     onClick: () => void;
     isActive: boolean;
     index: number;
     sectionActive: boolean;
+    x: number;
+    y: number;
 }) {
     const starRef = useRef<HTMLButtonElement>(null);
 
@@ -137,7 +164,7 @@ function Star({
         <button
             ref={starRef}
             className="absolute group z-20 cursor-pointer star-button"
-            style={{ left: `${memory.x}%`, top: `${memory.y}%`, opacity: 0 }}
+            style={{ left: `${x}%`, top: `${y}%`, opacity: 0 }}
             onClick={onClick}
         >
             {/* Soft glow ring — CSS animation instead of Framer Motion */}
@@ -177,10 +204,10 @@ function Star({
     );
 }
 
-// Pre-generate background star positions at module level (not during render)
+// Pre-generate background star positions at module level 
 const BG_STAR_COUNT = 100;
 const bgStarData = Array.from({ length: BG_STAR_COUNT }, (_, i) => ({
-    size: (((i * 7 + 3) % 5) * 0.4 + 0.5).toFixed(1), // deterministic pseudo-random
+    size: (((i * 7 + 3) % 5) * 0.4 + 0.5).toFixed(1),
     left: ((i * 37 + 13) % 100).toFixed(1),
     top: ((i * 53 + 7) % 100).toFixed(1),
     delay: ((i * 0.31) % 5).toFixed(2),
@@ -189,8 +216,21 @@ const bgStarData = Array.from({ length: BG_STAR_COUNT }, (_, i) => ({
 
 export default function MemoryMap({ isActive = false }: { isActive?: boolean }) {
     const [activeMemory, setActiveMemory] = useState<number | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
     const active = MEMORIES.find((m) => m.id === activeMemory);
     const titleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        handleResize(); // Check on mount
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    const getCoords = (m: Memory) => ({
+        x: isMobile ? m.mobileX : m.x,
+        y: isMobile ? m.mobileY : m.y,
+    });
 
     // Title GSAP entrance
     useEffect(() => {
@@ -216,7 +256,7 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
     return (
         <>
             {/* ── Title ──────────────────────────────────────── */}
-            <div ref={titleRef} className="absolute top-8 sm:top-14 left-0 right-0 z-30 text-center px-4">
+            <div ref={titleRef} className="absolute top-8 sm:top-14 left-0 right-0 z-30 text-center px-4 pointer-events-none">
                 <h2
                     className="text-3xl sm:text-5xl md:text-7xl font-bold italic text-white/90 mb-2 sm:mb-3"
                     style={{
@@ -224,13 +264,13 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
                         textShadow: "0 0 40px rgba(255,209,102,0.15)",
                     }}
                 >
-                    <SplitText text="আমাদের নক্ষত্রমালা" />
+                    <SplitText text="আমাদের আকাশে লেখা তারিখগুলো" />
                 </h2>
                 <p
                     className="text-sm sm:text-lg text-white/35 font-light tracking-widest transition-opacity duration-1000"
                     style={{ opacity: isActive ? 1 : 0, transitionDelay: "1.5s" }}
                 >
-                    প্রতিটা তারা এক একটা গল্প — ছুঁয়ে দেখো
+                    প্রতিটা তারা এক একটা তারিখ — ছুঁয়ে দেখো
                 </p>
             </div>
 
@@ -284,13 +324,15 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
                 {MEMORIES.slice(0, -1).map((m, i) => {
                     const next = MEMORIES[i + 1];
+                    const currCoords = getCoords(m);
+                    const nextCoords = getCoords(next);
                     return (
                         <motion.line
                             key={m.id}
-                            x1={`${m.x}%`}
-                            y1={`${m.y}%`}
-                            x2={`${next.x}%`}
-                            y2={`${next.y}%`}
+                            x1={`${currCoords.x}%`}
+                            y1={`${currCoords.y}%`}
+                            x2={`${nextCoords.x}%`}
+                            y2={`${nextCoords.y}%`}
                             stroke="white"
                             strokeWidth="0.5"
                             strokeDasharray="4 6"
@@ -303,16 +345,21 @@ export default function MemoryMap({ isActive = false }: { isActive?: boolean }) 
             </svg>
 
             {/* ── Interactive Stars ──────────────────────────── */}
-            {MEMORIES.map((memory, index) => (
-                <Star
-                    key={memory.id}
-                    memory={memory}
-                    isActive={activeMemory === memory.id}
-                    onClick={() => setActiveMemory(memory.id)}
-                    index={index}
-                    sectionActive={isActive}
-                />
-            ))}
+            {MEMORIES.map((memory, index) => {
+                const { x, y } = getCoords(memory);
+                return (
+                    <Star
+                        key={memory.id}
+                        memory={memory}
+                        isActive={activeMemory === memory.id}
+                        onClick={() => setActiveMemory(memory.id)}
+                        index={index}
+                        sectionActive={isActive}
+                        x={x}
+                        y={y}
+                    />
+                );
+            })}
 
             {/* ── Memory Popup ───────────────────────────────── */}
             <AnimatePresence>

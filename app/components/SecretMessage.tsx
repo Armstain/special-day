@@ -6,10 +6,9 @@ import gsap from "gsap";
 import { splitGraphemes } from "./textUtils";
 
 const MESSAGE_LINES = [
-    "সব ব্যস্ততার ভিড়ে তোমার কাছেই শান্তি পাই,",
-    "তোমার একটা মেসেজেই দিনটা ভালো হয়ে যায়,",
-    "তুমিই আমার সবচেয়ে নিরাপদ জায়গা,",
-    "আর তোমাকেই ভালোবেসে ফেলাটা ছিল আমার সেরা সিদ্ধান্ত।",
+    "ভালোবাসাবাসির জন্য অনন্তকালের প্রয়োজন নেই,",
+    "একটি মুহূর্তই যথেষ্ট।",
+    "সেই মুহূর্তটা আমি তোমাকেই দিতে চাই।",
     "",
     "Will you be my Valentine?",
 ];
@@ -192,8 +191,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                 </motion.button>
             </div>
 
-            {/* Note: Keeping Framer Motion for the modal since it's a complex exit/enter interaction 
-                and not a simple scroll/reveal animation. The user asked for "gsap for animation like text". */}
+
             <AnimatePresence>
                 {isOpen && (
                     <>
@@ -212,7 +210,7 @@ export default function SecretMessage({ isActive = false }: { isActive?: boolean
                             exit={{ opacity: 0 }}
                         >
                             <motion.div
-                                className="glass-card rounded-3xl p-8 sm:p-12 md:p-16 bg-cream/95 max-w-2xl w-full relative overflow-hidden"
+                                className="rounded-3xl p-4 sm:p-6 md:p-6 bg-cream/95 max-w-2xl w-full relative overflow-hidden bottom-10"
                                 initial={{ scale: 0.85, y: 60, rotateX: 15 }}
                                 animate={{ scale: 1, y: 0, rotateX: 0 }}
                                 exit={{ scale: 0.85, y: 60, rotateX: -15 }}
