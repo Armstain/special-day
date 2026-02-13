@@ -7,6 +7,8 @@ interface MusicToggleProps {
     shouldStart?: boolean;
 }
 
+const clampVolume = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+
 export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     const audioBasePath =
         typeof window !== "undefined" && window.location.pathname.startsWith("/special-day")
@@ -31,18 +33,21 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
 
             cancelFade();
 
-            const from = audio.volume;
-            const to = Math.max(0, Math.min(1, target));
+            const from = clampVolume(audio.volume);
+            const to = clampVolume(target);
+            const safeDuration = duration > 0 ? duration : 1;
             const start = performance.now();
 
             const tick = (now: number) => {
                 const elapsed = now - start;
-                const progress = Math.min(1, elapsed / duration);
-                audio.volume = from + (to - from) * progress;
+                const progress = Math.min(1, Math.max(0, elapsed / safeDuration));
+                const nextVolume = clampVolume(from + (to - from) * progress);
+                audio.volume = nextVolume;
 
                 if (progress < 1) {
                     fadeRafRef.current = requestAnimationFrame(tick);
                 } else {
+                    audio.volume = to;
                     fadeRafRef.current = null;
                     onComplete?.();
                 }
@@ -56,7 +61,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     useEffect(() => {
         const audio = new Audio(`${audioBasePath}/abar.mp3`);
         audio.loop = true;
-        audio.volume = 0;
+        audio.volume = clampVolume(0);
         audio.preload = "auto";
         audioRef.current = audio;
 
@@ -71,7 +76,8 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
             audio.removeEventListener("ended", syncPlayingState);
             cancelFade();
             audio.pause();
-            audio.src = "";
+            audio.removeAttribute("src");
+            audio.load();
         };
     }, [cancelFade, audioBasePath]);
 
@@ -80,7 +86,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
         if (!audio) return false;
         if (!audio.paused) return true;
 
-        audio.volume = 0;
+        audio.volume = clampVolume(0);
         try {
             await audio.play();
             fadeTo(0.22);
