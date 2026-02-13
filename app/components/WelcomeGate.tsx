@@ -191,7 +191,7 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
     const [nameInput, setNameInput] = useState("");
     const [shaking, setShaking] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
-    const [timerDone, setTimerDone] = useState(false);
+    const [timerDone, setTimerDone] = useState(() => getTimeLeft().total === 0);
     const [celebrating, setCelebrating] = useState(false);
     const [celebrationParticles, setCelebrationParticles] = useState<Array<{
         id: number; emoji: string; x: number; y: number; angle: number;
@@ -268,6 +268,19 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
             }
         });
     }, []);
+
+    useEffect(() => {
+        const unlock = () => ensureAudioPlaying();
+        window.addEventListener("click", unlock, { once: true });
+        window.addEventListener("touchstart", unlock, { passive: true, once: true });
+        window.addEventListener("keydown", unlock, { once: true });
+
+        return () => {
+            window.removeEventListener("click", unlock);
+            window.removeEventListener("touchstart", unlock);
+            window.removeEventListener("keydown", unlock);
+        };
+    }, [ensureAudioPlaying]);
 
     // ═══════════════════════════════════════════════════════
     // COUNTDOWN TIMER
@@ -433,9 +446,7 @@ export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: Welcome
 
     useEffect(() => {
         const initial = getTimeLeft();
-        // If already past target date on mount
         if (initial.total === 0) {
-            setTimerDone(true);
             return;
         }
 
