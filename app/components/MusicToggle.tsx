@@ -109,7 +109,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
 
     useEffect(() => {
         const tryUnlockPlayback = () => {
-            if (!shouldStart || !shouldAutoplayWhenUnlockedRef.current) return;
+            if (!shouldStart) return;
             void playWithFadeIn();
         };
 
