@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import { createAudioWithFallback } from "./audioUtils";
 
 interface MusicToggleProps {
     shouldStart?: boolean;
 }
 
 export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
-    const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fadeRafRef = useRef<number | null>(null);
@@ -51,7 +51,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     );
 
     useEffect(() => {
-        const audio = new Audio(`${publicBasePath}/Abar.mp3`);
+        const audio = createAudioWithFallback("Abar.mp3");
         audio.loop = true;
         audio.volume = 0;
         audio.preload = "auto";
@@ -70,7 +70,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
             audio.pause();
             audio.src = "";
         };
-    }, [cancelFade, publicBasePath]);
+    }, [cancelFade]);
 
     const playWithFadeIn = useCallback(async () => {
         const audio = audioRef.current;
