@@ -3,61 +3,133 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 
-export default function MusicToggle() {
+interface MusicToggleProps {
+    shouldStart?: boolean;
+}
+
+export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const fadeRef = useRef<ReturnType<typeof setInterval>>(null);
+    const fadeRafRef = useRef<number | null>(null);
+    const shouldAutoplayWhenUnlockedRef = useRef(false);
 
-    const fadeVolume = useCallback((target: number, duration: number = 800) => {
-        if (!audioRef.current) return;
-        if (fadeRef.current) clearInterval(fadeRef.current);
-
-        const audio = audioRef.current;
-        const step = (target - audio.volume) / (duration / 50);
-
-        fadeRef.current = setInterval(() => {
-            if (!audioRef.current) return;
-            const newVol = audioRef.current.volume + step;
-            if ((step > 0 && newVol >= target) || (step < 0 && newVol <= target)) {
-                audioRef.current.volume = Math.max(0, Math.min(1, target));
-                if (fadeRef.current) clearInterval(fadeRef.current);
-                if (target === 0) audioRef.current.pause();
-            } else {
-                audioRef.current.volume = Math.max(0, Math.min(1, newVol));
-            }
-        }, 50);
+    const cancelFade = useCallback(() => {
+        if (fadeRafRef.current !== null) {
+            cancelAnimationFrame(fadeRafRef.current);
+            fadeRafRef.current = null;
+        }
     }, []);
+
+    const fadeTo = useCallback(
+        (target: number, duration: number = 800, onComplete?: () => void) => {
+            const audio = audioRef.current;
+            if (!audio) return;
+
+            cancelFade();
+
+            const from = audio.volume;
+            const to = Math.max(0, Math.min(1, target));
+            const start = performance.now();
+
+            const tick = (now: number) => {
+                const elapsed = now - start;
+                const progress = Math.min(1, elapsed / duration);
+                audio.volume = from + (to - from) * progress;
+
+                if (progress < 1) {
+                    fadeRafRef.current = requestAnimationFrame(tick);
+                } else {
+                    fadeRafRef.current = null;
+                    onComplete?.();
+                }
+            };
+
+            fadeRafRef.current = requestAnimationFrame(tick);
+        },
+        [cancelFade]
+    );
 
     useEffect(() => {
         const audio = new Audio("/Abar.mp3");
         audio.loop = true;
         audio.volume = 0;
+        audio.preload = "auto";
         audioRef.current = audio;
 
+        const syncPlayingState = () => setIsPlaying(!audio.paused);
+        audio.addEventListener("play", syncPlayingState);
+        audio.addEventListener("pause", syncPlayingState);
+        audio.addEventListener("ended", syncPlayingState);
+
         return () => {
+            audio.removeEventListener("play", syncPlayingState);
+            audio.removeEventListener("pause", syncPlayingState);
+            audio.removeEventListener("ended", syncPlayingState);
+            cancelFade();
             audio.pause();
             audio.src = "";
-            if (fadeRef.current) clearInterval(fadeRef.current);
         };
-    }, [fadeVolume]);
+    }, [cancelFade]);
+
+    const playWithFadeIn = useCallback(async () => {
+        const audio = audioRef.current;
+        if (!audio) return false;
+        if (!audio.paused) return true;
+
+        audio.volume = 0;
+        try {
+            await audio.play();
+            fadeTo(0.05);
+            shouldAutoplayWhenUnlockedRef.current = false;
+            return true;
+        } catch {
+            shouldAutoplayWhenUnlockedRef.current = true;
+            return false;
+        }
+    }, [fadeTo]);
+
+    const stopWithFadeOut = useCallback(() => {
+        const audio = audioRef.current;
+        if (!audio || audio.paused) return;
+
+        fadeTo(0, 700, () => {
+            audio.pause();
+            audio.currentTime = audio.currentTime;
+        });
+    }, [fadeTo]);
+
+    useEffect(() => {
+        if (!shouldStart) return;
+        void playWithFadeIn();
+    }, [shouldStart, playWithFadeIn]);
+
+    useEffect(() => {
+        const tryUnlockPlayback = () => {
+            if (!shouldStart || !shouldAutoplayWhenUnlockedRef.current) return;
+            void playWithFadeIn();
+        };
+
+        window.addEventListener("pointerdown", tryUnlockPlayback, { passive: true });
+        window.addEventListener("keydown", tryUnlockPlayback);
+        window.addEventListener("touchstart", tryUnlockPlayback, { passive: true });
+
+        return () => {
+            window.removeEventListener("pointerdown", tryUnlockPlayback);
+            window.removeEventListener("keydown", tryUnlockPlayback);
+            window.removeEventListener("touchstart", tryUnlockPlayback);
+        };
+    }, [shouldStart, playWithFadeIn]);
 
     const toggle = useCallback(async () => {
-        if (!audioRef.current) return;
+        const audio = audioRef.current;
+        if (!audio) return;
 
-        if (isPlaying) {
-            fadeVolume(0);
-            setIsPlaying(false);
+        if (!audio.paused) {
+            stopWithFadeOut();
         } else {
-            audioRef.current.volume = 0;
-            try {
-                await audioRef.current.play();
-                fadeVolume(0.04); // 5% volume
-                setIsPlaying(true);
-            } catch {
-                // Autoplay blocked
-            }
+            await playWithFadeIn();
         }
-    }, [isPlaying, fadeVolume]);
+    }, [playWithFadeIn, stopWithFadeOut]);
 
     const barDelays = [0, 0.15, 0.3, 0.1, 0.25];
     const barHeights = [14, 20, 10, 16, 12];

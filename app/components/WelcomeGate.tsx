@@ -78,8 +78,8 @@ const VALID_NAME = "adnan";
 const ADMIN_NAME = "admin";
 
 const MESSAGES = {
-    namePlaceholder: "নাম লেখো...",
-    namePrompt: "তোমার ভালোবাসার মানুষ তার নাম কি?",
+    namePlaceholder: "এখানে লেখো...",
+    namePrompt: "তোমার ভালোবাসার মানুষটার নাম......",
     enterButton: "প্রবেশ করো 💕",
     pullHint: "পর্দা সরাও",
     pullInstruction: "টেনে ধরে দুদিকে সরাও",
@@ -98,6 +98,7 @@ const MESSAGES = {
 // ═══════════════════════════════════════════════════════
 
 interface WelcomeGateProps {
+    onCurtainsFullyOpen?: () => void;
     onComplete: () => void;
 }
 
@@ -156,7 +157,7 @@ function fadeInAudio(audio: HTMLAudioElement | null, targetVolume: number, durat
 // COMPONENT
 // ═══════════════════════════════════════════════════════
 
-export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
+export default function WelcomeGate({ onCurtainsFullyOpen, onComplete }: WelcomeGateProps) {
     // Refs
     const containerRef = useRef<HTMLDivElement>(null);
     const leftCurtainRef = useRef<HTMLDivElement>(null);
@@ -171,6 +172,8 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
     const ambienceAudioRef = useRef<HTMLAudioElement | null>(null);
     const phaseRef = useRef<Phase>("dark");
     const shakeTimeoutRef = useRef<number | undefined>(undefined);
+    const audioUnlockedRef = useRef(false);
+    const curtainOpenHandledRef = useRef(false);
 
     // State
     const [phase, setPhase] = useState<Phase>("dark");
@@ -196,8 +199,14 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
         rightRef: rightCurtainRef,
         containerRef: containerRef,
         onComplete: () => {
+            if (!curtainOpenHandledRef.current) {
+                curtainOpenHandledRef.current = true;
+                onCurtainsFullyOpen?.();
+            }
+
+            fadeOutAudio(clockAudioRef.current);
             fadeOutAudio(ambienceAudioRef.current);
-            onComplete();
+            setTimeout(onComplete, ANIMATION_DURATIONS.audioFadeOut * 1000);
         },
     });
 
@@ -222,6 +231,22 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
             ambienceAudio.pause();
             ambienceAudio.src = "";
         };
+    }, []);
+
+    // ═══════════════════════════════════════════════════════
+    // AUDIO UNLOCK ON USER GESTURE
+    // ═══════════════════════════════════════════════════════
+
+    const ensureAudioPlaying = useCallback(() => {
+        if (audioUnlockedRef.current) return;
+        audioUnlockedRef.current = true;
+
+        // Retry playing any audio that was blocked by autoplay policy
+        [clockAudioRef.current, ambienceAudioRef.current].forEach(audio => {
+            if (audio && audio.paused) {
+                audio.play().catch(() => { });
+            }
+        });
     }, []);
 
     // ═══════════════════════════════════════════════════════
@@ -254,6 +279,11 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
             onComplete: () => {
                 setPhase("spotlight");
                 fadeInAudio(clockAudioRef.current, AUDIO_VOLUMES.clock, 2);
+                fadeInAudio(
+                    ambienceAudioRef.current,
+                    AUDIO_VOLUMES.ambience,
+                    ANIMATION_DURATIONS.ambienceFadeIn
+                );
             },
         });
 
@@ -312,8 +342,6 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
     // ═══════════════════════════════════════════════════════
 
     const proceedToLights = useCallback(() => {
-        fadeOutAudio(clockAudioRef.current, ANIMATION_DURATIONS.clockFadeOut);
-
         const tl = gsap.timeline();
 
         // Fade out spotlight content
@@ -344,11 +372,7 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
                 duration: ANIMATION_DURATIONS.darknessFadeOut,
                 ease: "power2.inOut",
                 onStart: () => {
-                    fadeInAudio(
-                        ambienceAudioRef.current,
-                        AUDIO_VOLUMES.ambience,
-                        ANIMATION_DURATIONS.ambienceFadeIn
-                    );
+                    // Ambience continues playing 
                 },
             },
             "-=0.8"
@@ -490,8 +514,14 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
                 const vw = window.innerWidth;
                 const tl = gsap.timeline({
                     onComplete: () => {
+                        if (!curtainOpenHandledRef.current) {
+                            curtainOpenHandledRef.current = true;
+                            onCurtainsFullyOpen?.();
+                        }
+
+                        fadeOutAudio(clockAudioRef.current);
                         fadeOutAudio(ambienceAudioRef.current);
-                        onComplete();
+                        setTimeout(onComplete, ANIMATION_DURATIONS.audioFadeOut * 1000);
                     },
                 });
 
@@ -538,7 +568,7 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
             container.removeEventListener("touchmove", handleTouchMove);
             container.removeEventListener("touchend", handleTouchEnd);
         };
-    }, [onComplete, dismissed]);
+    }, [onComplete, onCurtainsFullyOpen, dismissed]);
 
     // Cleanup shake timeout
     useEffect(() => {
@@ -664,16 +694,16 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
                 style={{ opacity: 0 }}
             >
                 <div className="flex items-center gap-2 sm:gap-4 md:gap-5">
-                    {(["days", "hours", "minutes", "seconds"] as const).map((unit, idx) => (
+                    {(["hours", "minutes", "seconds"] as const).map((unit, idx) => (
                         <div key={unit} className="flex items-center gap-2 sm:gap-4 md:gap-5">
                             {idx > 0 && (
-                                <span className="bat-signal-text text-4xl sm:text-5xl font-light -mt-5 opacity-60">
+                                <span className="bat-signal-text text-4xl sm:text-5xl font-light -mt-5 opacity-100">
                                     :
                                 </span>
                             )}
                             <div className="flex flex-col items-center">
                                 <span
-                                    className="bat-signal-text text-5xl sm:text-7xl md:text-8xl font-bold"
+                                    className="bat-signal-text text-5xl sm:text-7xl md:text-7xl font-bold"
                                     style={{ fontFamily: "var(--font-serif)" }}
                                 >
                                     {toBengaliNumber(padNumber(timeLeft[unit]))}
@@ -708,7 +738,9 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
                         ref={inputRef}
                         type="text"
                         value={nameInput}
+                        onFocus={ensureAudioPlaying}
                         onChange={(e) => {
+                            ensureAudioPlaying();
                             setNameInput(e.target.value);
                             setErrorMsg("");
                         }}
@@ -726,7 +758,7 @@ export default function WelcomeGate({ onComplete }: WelcomeGateProps) {
                     />
 
                     <button
-                        onClick={handleNameSubmit}
+                        onClick={() => { ensureAudioPlaying(); handleNameSubmit(); }}
                         className="px-6 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white/80
               hover:bg-white/15 hover:border-white/30 active:scale-95
               transition-all duration-300 text-sm sm:text-base font-medium tracking-wide"

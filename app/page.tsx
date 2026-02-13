@@ -29,9 +29,17 @@ const SECTIONS = [
 
 export default function Home() {
   const [showWelcome, setShowWelcome] = useState(true);
+  const [musicStarted, setMusicStarted] = useState(false);
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [collectedStamps, setCollectedStamps] = useState<string[]>([]);
+  const [footerHearts, setFooterHearts] = useState<Array<{
+    x: string;
+    rotate: number;
+    duration: number;
+    delay: number;
+    fontSize: number;
+  }>>([]);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const [showNav, setShowNav] = useState(false);
@@ -47,6 +55,18 @@ export default function Home() {
   useEffect(() => {
     isAnimatingRef.current = isAnimating;
   }, [isAnimating]);
+
+  // Generate random footer hearts only on client mount to avoid hydration mismatch
+  useEffect(() => {
+    const hearts = Array.from({ length: 15 }, () => ({
+      x: Math.random() * 100 + "vw",
+      rotate: Math.random() * 360,
+      duration: 10 + Math.random() * 10,
+      delay: Math.random() * 5,
+      fontSize: 20 + Math.random() * 40,
+    }));
+    setFooterHearts(hearts);
+  }, []);
 
   // ── Animate to section ──
   const goTo = useCallback(
@@ -224,11 +244,14 @@ export default function Home() {
       <CustomCursor />
       <CursorDropShapes />
       <FloatingHearts />
-      <MusicToggle />
+      <MusicToggle shouldStart={musicStarted} />
 
       {/* ── Welcome Gate Overlay ── */}
       {showWelcome && (
-        <WelcomeGate onComplete={() => setShowWelcome(false)} />
+        <WelcomeGate
+          onCurtainsFullyOpen={() => setMusicStarted(true)}
+          onComplete={() => setShowWelcome(false)}
+        />
       )}
 
       <div className={`fixed top-0 left-0 right-0 h-0.75 z-101 bg-charcoal/5 transition-opacity duration-700 ${showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -375,23 +398,23 @@ export default function Home() {
           <div className="section-content w-full h-full flex flex-col items-center justify-center text-center px-4 relative">
             {/* Background floating hearts for footer */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {Array.from({ length: 15 }, (_, i) => (
+              {footerHearts.map((heart, i) => (
                 <motion.div
                   key={`footer-heart-${i}`}
                   className="absolute text-rose-deep/5"
-                  initial={{ y: "100vh", x: Math.random() * 100 + "vw", opacity: 0 }}
+                  initial={{ y: "100vh", x: heart.x, opacity: 0 }}
                   animate={{
                     y: "-10vh",
                     opacity: [0, 0.4, 0],
-                    rotate: Math.random() * 360
+                    rotate: heart.rotate
                   }}
                   transition={{
-                    duration: 10 + Math.random() * 10,
+                    duration: heart.duration,
                     repeat: Infinity,
-                    delay: Math.random() * 5,
+                    delay: heart.delay,
                     ease: "linear"
                   }}
-                  style={{ fontSize: 20 + Math.random() * 40 }}
+                  style={{ fontSize: heart.fontSize }}
                 >
                   ❤
                 </motion.div>
