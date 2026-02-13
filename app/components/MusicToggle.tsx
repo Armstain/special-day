@@ -59,7 +59,7 @@ export default function MusicToggle({ shouldStart = false }: MusicToggleProps) {
     );
 
     useEffect(() => {
-        const audio = new Audio(`${audioBasePath}/abar.mp3`);
+        const audio = new Audio(`${audioBasePath}/Abar.mp3`);
         audio.loop = true;
         audio.volume = clampVolume(0);
         audio.preload = "auto";
